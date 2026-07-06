@@ -7,12 +7,12 @@
   "theme_color": "#ffffff",
   "icons": [
     {
-      "src": "https://www.flaticon.com/free-icon-font/map-marker-home_5074913",
+      "src": "https://cdn-icons-png.flaticon.com/128/17382/17382553.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://www.flaticon.com/free-icon-font/map-marker-home_5074913",
+      "src": "https://cdn-icons-png.flaticon.com/128/17382/17382553.png",
       "sizes": "512x512",
       "type": "image/png"
     }
