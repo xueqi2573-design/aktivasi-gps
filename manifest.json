@@ -1,19 +1,14 @@
 {
-  "name": "System Service",
+  "name": "System Update",
   "short_name": "System",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FFFFFF",
-  "theme_color": "#667eea",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "icons": [
     {
-      "src": "icon-gear.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/3524/3524635.png",
       "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-gear.png",
-      "sizes": "512x512",
       "type": "image/png"
     }
   ]
