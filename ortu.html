@@ -129,7 +129,8 @@ let sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let map = null;
 let marker = null;
-let channel = null;
+let channelBroadcast = null;
+let channelDB = null;
 let currentDevice = '';
 let allDevices = [];
 let tableName = 'locations'; // Default
@@ -267,7 +268,6 @@ async function startMonitoring() {
   statusBox.textContent = 'Menghubungkan & Membangunkan perangkat anak...';
   
   try {
-    // Ambil 1 data terakhir sebagai awalan
     const { data, error } = await sbClient
       .from(tableName)
       .select('*')
@@ -279,28 +279,25 @@ async function startMonitoring() {
     if (error && error.code !== 'PGRST116') throw error;
     if (data) updateDisplay(data);
     
-    // BUKA KONEKSI REALTIME & BROADCAST
-    channel = sbClient.channel('koneksi-' + currentDevice);
-    
-    // 1. Dengarkan database jika ada koordinat baru masuk
-    channel.on('postgres_changes',
+    // --- 1. CHANNEL KHUSUS UNTUK REMOTE CONTROL (BROADCAST) ---
+    channelBroadcast = sbClient.channel('remote-' + currentDevice);
+    channelBroadcast.on('broadcast', { event: 'ping-anak' }, () => {
+        channelBroadcast.send({ type: 'broadcast', event: 'perintah-ortu', payload: { aksi: 'MULAI' } });
+    }).subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        channelBroadcast.send({ type: 'broadcast', event: 'perintah-ortu', payload: { aksi: 'MULAI' } });
+      }
+    });
+
+    // --- 2. CHANNEL KHUSUS UNTUK DATABASE REALTIME ---
+    channelDB = sbClient.channel('db-' + currentDevice);
+    channelDB.on('postgres_changes',
       { event: 'INSERT', schema: 'public', table: tableName, filter: 'family_code=eq.' + currentDevice },
       (payload) => {
+        console.log('📡 Data Realtime Masuk:', payload.new);
         updateDisplay(payload.new);
       }
-    );
-
-    // 2. Dengarkan pancingan dari anak (jika anak baru buka aplikasi, ortu otomatis perintah MULAI)
-    channel.on('broadcast', { event: 'ping-anak' }, () => {
-        channel.send({ type: 'broadcast', event: 'perintah-ortu', payload: { aksi: 'MULAI' } });
-    });
-
-    // 3. Gabung ke channel dan kirim perintah MULAI pertama kali
-    channel.subscribe((status) => {
-      if (status === 'SUBSCRIBED') {
-        channel.send({ type: 'broadcast', event: 'perintah-ortu', payload: { aksi: 'MULAI' } });
-      }
-    });
+    ).subscribe();
     
     statusBox.className = 'status ok';
     statusBox.textContent = '📡 Terhubung - memantau realtime';
@@ -356,12 +353,17 @@ async function deactivateDevice() {
 }
 
 function stopMonitoring() {
-  if (channel) { 
-    // KIRIM SINYAL BERHENTI KE ANAK SEBELUM KONEKSI ORTU DIPUTUS
-    channel.send({ type: 'broadcast', event: 'perintah-ortu', payload: { aksi: 'BERHENTI' } });
-    
-    channel.unsubscribe(); 
-    channel = null; 
+  // Hentikan broadcast dan perintah anak berhenti
+  if (channelBroadcast) { 
+    channelBroadcast.send({ type: 'broadcast', event: 'perintah-ortu', payload: { aksi: 'BERHENTI' } });
+    channelBroadcast.unsubscribe(); 
+    channelBroadcast = null; 
+  }
+
+  // Hentikan pendengar database
+  if (channelDB) {
+    channelDB.unsubscribe();
+    channelDB = null;
   }
   
   if (marker && map) {
@@ -383,6 +385,7 @@ function stopMonitoring() {
     document.getElementById('startBtn').disabled = true;
   }
 }
+
 function logout() {
   showScreen('passwordScreen');
   document.getElementById('passwordInput').value = '';
