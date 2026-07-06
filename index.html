@@ -13,7 +13,6 @@
   .container { max-width: 500px; margin: 0 auto; }
   .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.1); margin-bottom: 15px; }
   h1 { color: #1877f2; margin-bottom: 15px; font-size: 24px; }
-  h2 { color: #333; font-size: 18px; margin-bottom: 10px; }
   button { background: #1877f2; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; margin-top: 10px; }
   button:hover { background: #1565c0; }
   button:disabled { background: #ccc; cursor: not-allowed; }
@@ -24,62 +23,49 @@
   .err { background: #f8d7da; color: #721c24; }
   .info { background: #e7f3ff; color: #004085; }
   .hidden { display: none !important; }
-  #map { height: 300px; border-radius: 8px; margin-top: 10px; }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <!-- SETUP SCREEN -->
   <div id="setupScreen" class="card">
     <h1>🔧 Setup Supabase</h1>
     <p style="color:#666;margin-bottom:15px;">Masukkan data dari Supabase Anda:</p>
-    
     <label>Project URL:</label>
     <input id="sbUrl" type="url" placeholder="https://xxxxx.supabase.co">
-    
     <label>Publishable Key (anon):</label>
-    <input id="sbKey" type="text" placeholder="sb_p... atau eyJ...">
-    
+    <input id="sbKey" type="text" placeholder="sb_p...">
     <button onclick="saveSetup()">💾 Simpan & Lanjut</button>
     <div id="setupStatus" class="status info">Siap...</div>
   </div>
 
-  <!-- MODE SCREEN -->
   <div id="modeScreen" class="card hidden">
     <h1>👨‍👩‍ Aktivasi GPS</h1>
     <p style="margin:15px 0;color:#555;">Pilih peran Anda:</p>
-    <button onclick="setMode('child')"> Saya ANAK (HP yang dilacak)</button>
-    <button onclick="setMode('parent')" style="background:#42b72a;">‍👩‍👦 Saya ORANG TUA (melihat lokasi)</button>
+    <button onclick="setMode('child')">📱 Saya ANAK (HP yang dilacak)</button>
+    <button onclick="setMode('parent')" style="background:#42b72a;">👨‍👩‍ Saya ORANG TUA (melihat lokasi)</button>
     <button onclick="resetSetup()" style="background:#6c757d;">⚙️ Reset Setup</button>
   </div>
 
-  <!-- CHILD SCREEN -->
   <div id="childScreen" class="card hidden">
-    <h1> Mode Anak</h1>
+    <h1>📱 Mode Anak</h1>
     <label>Kode Keluarga:</label>
     <input id="childCode" type="text" placeholder="contoh: keluargaku2026">
-    
     <label>Interval (detik):</label>
     <input id="interval" type="number" value="30" min="10">
-    
     <button onclick="startChild()">🚀 Mulai Kirim Lokasi</button>
     <button onclick="stopChild()" style="background:#dc3545;" id="stopBtn" disabled>⏹ Berhenti</button>
     <div id="childStatus" class="status info">Siap...</div>
   </div>
 
-  <!-- PARENT SCREEN -->
   <div id="parentScreen" class="card hidden">
-    <h1>👨‍👩‍👦 Mode Orang Tua</h1>
+    <h1>👨‍👩‍ Mode Orang Tua</h1>
     <label>Kode Keluarga:</label>
     <input id="parentCode" type="text" placeholder="contoh: keluargaku2026">
-    
     <button onclick="startParent()">📡 Mulai Melacak</button>
     <div id="parentStatus" class="status info">Menunggu...</div>
-    
-    <div id="mapContainer" class="hidden">
-      <h2 style="margin-top:20px;">🗺️ Peta</h2>
-      <div id="map"></div>
+    <div id="mapContainer" class="hidden" style="margin-top:20px;">
+      <div id="map" style="height:300px;border-radius:8px;"></div>
       <div id="infoLoc" style="margin-top:10px;font-size:14px;"></div>
     </div>
   </div>
@@ -89,22 +75,17 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-// GANTI NAMA VARIABEL: supabase -> sbClient (hindari bentrok dengan global Firefox)
 let sbClient = null;
 let watchId = null;
 let sendTimer = null;
 let map = null;
 let marker = null;
 
-// ============ SETUP ============
 function saveSetup() {
   console.log('🔵 saveSetup dipanggil');
   
   const url = document.getElementById('sbUrl').value.trim();
   const key = document.getElementById('sbKey').value.trim();
-  
-  console.log('URL:', url);
-  console.log('Key:', key ? key.substring(0, 20) + '...' : '(kosong)');
   
   if (!url || !key) {
     alert('⚠️ URL dan Key harus diisi!');
@@ -112,18 +93,17 @@ function saveSetup() {
   }
   
   if (!url.includes('supabase.co')) {
-    alert('⚠️ URL tidak valid! Format: https://xxx.supabase.co');
+    alert('⚠️ URL tidak valid!');
     return;
   }
   
   try {
     localStorage.setItem('sb_url', url);
     localStorage.setItem('sb_key', key);
-    console.log('✅ Data disimpan ke localStorage');
     
-    // PENTING: Inisialisasi sbClient SEKARANG juga!
+    // PENTING: Inisialisasi sbClient SEKARANG!
     sbClient = window.supabase.createClient(url, key);
-    console.log('✅ sbClient dibuat:', sbClient);
+    console.log('✅ sbClient dibuat dan siap!');
     
     document.getElementById('setupStatus').className = 'status ok';
     document.getElementById('setupStatus').textContent = '✅ Tersimpan! Memuat...';
@@ -141,11 +121,11 @@ function saveSetup() {
 function resetSetup() {
   localStorage.removeItem('sb_url');
   localStorage.removeItem('sb_key');
+  sbClient = null;
   showScreen('setupScreen');
 }
 
 function showScreen(id) {
-  console.log('🔄 Pindah ke:', id);
   ['setupScreen', 'modeScreen', 'childScreen', 'parentScreen'].forEach(s => {
     document.getElementById(s).classList.add('hidden');
   });
@@ -153,36 +133,30 @@ function showScreen(id) {
 }
 
 function initApp() {
-  console.log(' initApp dipanggil');
-  console.log('Supabase library loaded:', typeof window.supabase);
+  console.log('🔵 initApp dipanggil');
   
   const url = localStorage.getItem('sb_url');
   const key = localStorage.getItem('sb_key');
   
-  console.log('URL dari storage:', url);
-  console.log('Key dari storage:', key ? '(ada)' : '(tidak ada)');
-  
   if (!url || !key) {
-    console.log('️ Belum setup, tampilkan setup screen');
+    console.log('⚠️ Belum setup, tampilkan setup screen');
     showScreen('setupScreen');
     return;
   }
   
   try {
-    // PENTING: pakai window.supabase.createClient (library), simpan ke sbClient (variabel kita)
     sbClient = window.supabase.createClient(url, key);
-    console.log('✅ Supabase client dibuat (sbClient)');
+    console.log('✅ Supabase client dibuat');
     showScreen('modeScreen');
   } catch (e) {
-    console.error(' Gagal buat Supabase client:', e);
-    alert('Gagal connect ke Supabase: ' + e.message);
+    console.error('❌ Gagal buat client:', e);
+    alert('Gagal connect: ' + e.message);
     showScreen('setupScreen');
   }
 }
 
-// ============ MODE ============
 function setMode(mode) {
-  console.log(' setMode:', mode);
+  console.log('🔵 setMode:', mode);
   
   if (mode === 'child') {
     showScreen('childScreen');
@@ -194,18 +168,22 @@ function setMode(mode) {
 
 function initMap() {
   if (map) return;
-  console.log('🔵 initMap dipanggil');
   map = L.map('map').setView([-2.5, 118], 4);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
   }).addTo(map);
 }
 
-// ============ CHILD ============
 function startChild() {
   const code = document.getElementById('childCode').value.trim();
   if (!code) {
     alert('Masukkan kode keluarga!');
+    return;
+  }
+  
+  // CEK: Apakah sbClient sudah siap?
+  if (!sbClient) {
+    alert('❌ Koneksi ke Supabase belum siap!\n\nSilakan refresh halaman dan setup ulang.');
     return;
   }
   
@@ -229,7 +207,7 @@ function startChild() {
     (err) => {
       console.error('❌ GPS error:', err);
       status.className = 'status err';
-      status.textContent = ' GPS: ' + err.message;
+      status.textContent = '❌ GPS: ' + err.message;
     },
     { enableHighAccuracy: true }
   );
@@ -245,7 +223,8 @@ function startChild() {
 
 async function sendLocation(code, coords) {
   try {
-    console.log(' Mengirim lokasi ke Supabase...');
+    console.log('📤 Mengirim lokasi ke Supabase...');
+    console.log('sbClient:', sbClient);
     
     const { data, error } = await sbClient
       .from('locations')
@@ -277,7 +256,6 @@ function stopChild() {
   document.getElementById('stopBtn').disabled = true;
 }
 
-// ============ PARENT ============
 async function startParent() {
   const code = document.getElementById('parentCode').value.trim();
   if (!code) {
@@ -290,7 +268,6 @@ async function startParent() {
   status.textContent = 'Menghubungkan...';
   
   try {
-    // Ambil lokasi terakhir
     const { data, error } = await sbClient
       .from('locations')
       .select('*')
@@ -307,7 +284,6 @@ async function startParent() {
       document.getElementById('mapContainer').classList.remove('hidden');
     }
     
-    // Subscribe realtime
     sbClient.channel('locations-' + code)
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'locations', filter: 'family_code=eq.' + code },
@@ -319,7 +295,7 @@ async function startParent() {
       ).subscribe();
     
     status.className = 'status ok';
-    status.textContent = ' Live - Mendengarkan...';
+    status.textContent = '📡 Live - Mendengarkan...';
   } catch (e) {
     console.error('❌ Error:', e);
     status.className = 'status err';
@@ -340,7 +316,6 @@ function updateMap(data) {
     '📍 ' + data.lat.toFixed(5) + ', ' + data.lng.toFixed(5) + ' (' + new Date(data.created_at).toLocaleString('id-ID') + ')';
 }
 
-// ============ INIT ============
 window.addEventListener('load', () => {
   console.log('🚀 Page loaded');
   initApp();
