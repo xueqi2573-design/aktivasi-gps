@@ -114,12 +114,19 @@
   </div>
 </div>
 
+<!-- Menggunakan sumber CDN yang lebih stabil untuk script tags -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
 <script>
+// Konfigurasi & Variabel Global
 const PARENT_PASSWORD = 'ortu123';
-let sbClient = null;
+const SUPABASE_URL = 'https://vjqjuwmpsxgyyaksgpdy.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_8xAS-WIffN84TLFrBKZzJA_B3kpPc4V';
+
+// Deklarasi sbClient satu kali saja
+let sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 let map = null;
 let marker = null;
 let channel = null;
@@ -145,30 +152,16 @@ function showScreen(id) {
   document.getElementById(id).classList.remove('hidden');
 }
 
-// ⚠️ GANTI DENGAN DATA SUPABASE ANDA
-const SUPABASE_URL = 'https://vjqjuwmpsxgyyaksgpdy.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_8xAS-WIffN84TLFrBKZzJA_B3kpPc4V';
-
-// Inisialisasi Supabase client langsung
-sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-function initApp() {
-  // Langsung load devices, tidak perlu cek localStorage
-  loadDevices();
-}
-
 async function loadDevices() {
   const select = document.getElementById('deviceSelect');
   const statusBox = document.getElementById('statusBox');
   
   try {
-    // Coba tabel 'locations' dulu
     let { data, error } = await sbClient
       .from('locations')
       .select('family_code')
       .order('created_at', { ascending: false });
     
-    // Kalau error atau kosong, coba tabel 'lokasi'
     if (error || !data || data.length === 0) {
       console.log('⚠️ Tabel locations tidak ada/kosong, coba lokasi...');
       const result = await sbClient
@@ -184,8 +177,6 @@ async function loadDevices() {
     }
     
     if (error) throw error;
-    
-    console.log('📊 Data mentah:', data);
     
     if (!data || data.length === 0) {
       select.innerHTML = '<option value="">-- Tidak ada perangkat --</option>';
@@ -210,7 +201,6 @@ async function loadDevices() {
     statusBox.textContent = `✅ Ditemukan ${uniqueDevices.length} perangkat. Pilih untuk memulai`;
     document.getElementById('startBtn').disabled = false;
     
-    console.log('✅ Perangkat tersedia:', uniqueDevices);
   } catch (e) {
     console.error('❌ Gagal load perangkat:', e);
     select.innerHTML = '<option value="">-- Error --</option>';
@@ -321,8 +311,6 @@ function logout() {
   document.getElementById('passwordStatus').textContent = 'Default: ortu123';
   stopMonitoring();
 }
-
-window.addEventListener('load', initApp);
 </script>
 </body>
 </html>
