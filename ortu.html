@@ -31,11 +31,11 @@
   button:disabled { background: #cbd5e0; cursor: not-allowed; }
   button.danger { background: linear-gradient(135deg, #f56565 0%, #c53030 100%); }
   button.secondary { background: #718096; }
-  input { 
+  input, select { 
     width: 100%; padding: 13px; border: 2px solid #e2e8f0; border-radius: 10px; 
     font-size: 15px; margin-top: 6px;
   }
-  input:focus { outline: none; border-color: #11998e; }
+  input:focus, select:focus { outline: none; border-color: #11998e; }
   label { font-weight: 600; color: #2d3748; font-size: 13px; display: block; margin-top: 12px; }
   .status { padding: 12px; border-radius: 10px; margin-top: 12px; font-size: 13px; font-weight: 500; }
   .ok { background: #c6f6d5; color: #22543d; border-left: 4px solid #48bb78; }
@@ -47,13 +47,6 @@
   .info-item { background: #f7fafc; padding: 10px; border-radius: 8px; }
   .info-label { font-size: 11px; color: #718096; text-transform: uppercase; }
   .info-value { font-size: 14px; font-weight: 600; color: #2d3748; margin-top: 3px; word-break: break-all; }
-  .device-list { margin-top: 15px; }
-  .device-item { 
-    background: #f7fafc; padding: 12px; border-radius: 8px; margin-bottom: 8px;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .device-name { font-weight: 600; color: #2d3748; }
-  .device-status { font-size: 12px; color: #48bb78; }
   .footer-link { text-align: center; margin-top: 15px; font-size: 13px; }
   .footer-link a { color: white; text-decoration: none; opacity: 0.9; }
 </style>
@@ -84,14 +77,14 @@
     
     <label>Pilih Perangkat:</label>
     <select id="deviceSelect" onchange="selectDevice()">
-      <option value="">-- Pilih --</option>
+      <option value="">-- Loading... --</option>
     </select>
     
-    <button onclick="startMonitoring()" id="startBtn">📡 Mulai Pantau</button>
+    <button onclick="startMonitoring()" id="startBtn" disabled>📡 Mulai Pantau</button>
     <button onclick="deactivateDevice()" class="danger hidden" id="deactivateBtn">⏹ Nonaktifkan Perangkat Ini</button>
     <button onclick="logout()" class="secondary">🔓 Keluar</button>
     
-    <div id="statusBox" class="status info">Pilih perangkat untuk memulai</div>
+    <div id="statusBox" class="status info">Memuat daftar perangkat...</div>
     
     <div id="mapContainer" class="hidden">
       <div id="map"></div>
@@ -132,6 +125,7 @@ let marker = null;
 let channel = null;
 let currentDevice = '';
 let allDevices = [];
+let tableName = 'locations'; // Default
 
 function checkPassword() {
   const password = document.getElementById('passwordInput').value;
@@ -163,18 +157,46 @@ function initApp() {
 }
 
 async function loadDevices() {
+  const select = document.getElementById('deviceSelect');
+  const statusBox = document.getElementById('statusBox');
+  
   try {
-    const { data, error } = await sbClient
+    // Coba tabel 'locations' dulu
+    let { data, error } = await sbClient
       .from('locations')
       .select('family_code')
       .order('created_at', { ascending: false });
     
+    // Kalau error atau kosong, coba tabel 'lokasi'
+    if (error || !data || data.length === 0) {
+      console.log('⚠️ Tabel locations tidak ada/kosong, coba lokasi...');
+      const result = await sbClient
+        .from('lokasi')
+        .select('family_code')
+        .order('created_at', { ascending: false });
+      data = result.data;
+      error = result.error;
+      if (data && data.length > 0) {
+        tableName = 'lokasi';
+        console.log('✅ Menggunakan tabel: lokasi');
+      }
+    }
+    
     if (error) throw error;
+    
+    console.log('📊 Data mentah:', data);
+    
+    if (!data || data.length === 0) {
+      select.innerHTML = '<option value="">-- Tidak ada perangkat --</option>';
+      statusBox.className = 'status info';
+      statusBox.textContent = 'Belum ada perangkat yang teraktivasi';
+      document.getElementById('startBtn').disabled = true;
+      return;
+    }
     
     const uniqueDevices = [...new Set(data.map(d => d.family_code))];
     allDevices = uniqueDevices;
     
-    const select = document.getElementById('deviceSelect');
     select.innerHTML = '<option value="">-- Pilih --</option>';
     uniqueDevices.forEach(device => {
       const option = document.createElement('option');
@@ -182,8 +204,17 @@ async function loadDevices() {
       option.textContent = device.charAt(0).toUpperCase() + device.slice(1);
       select.appendChild(option);
     });
+    
+    statusBox.className = 'status ok';
+    statusBox.textContent = `✅ Ditemukan ${uniqueDevices.length} perangkat. Pilih untuk memulai`;
+    document.getElementById('startBtn').disabled = false;
+    
+    console.log('✅ Perangkat tersedia:', uniqueDevices);
   } catch (e) {
-    console.error('Gagal load perangkat:', e);
+    console.error('❌ Gagal load perangkat:', e);
+    select.innerHTML = '<option value="">-- Error --</option>';
+    statusBox.className = 'status err';
+    statusBox.textContent = '❌ Gagal: ' + e.message;
   }
 }
 
@@ -218,7 +249,7 @@ async function startMonitoring() {
   
   try {
     const { data, error } = await sbClient
-      .from('locations')
+      .from(tableName)
       .select('*')
       .eq('family_code', currentDevice)
       .order('created_at', { ascending: false })
@@ -230,7 +261,7 @@ async function startMonitoring() {
     
     channel = sbClient.channel('loc-' + currentDevice)
       .on('postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'locations', filter: 'family_code=eq.' + currentDevice },
+        { event: 'INSERT', schema: 'public', table: tableName, filter: 'family_code=eq.' + currentDevice },
         (payload) => {
           console.log('📡 Update:', payload.new);
           updateDisplay(payload.new);
@@ -261,10 +292,10 @@ function updateDisplay(data) {
 
 async function deactivateDevice() {
   if (!currentDevice) return;
-  if (!confirm(`⚠️ Nonaktifkan perangkat "${currentDevice}"?\n\nPerangkat akan berhenti mengirim lokasi.`)) return;
+  if (!confirm(`⚠️ Nonaktifkan perangkat "${currentDevice}"?\n\nSemua data lokasi akan dihapus.`)) return;
   
   try {
-    await sbClient.from('locations').delete().eq('family_code', currentDevice);
+    await sbClient.from(tableName).delete().eq('family_code', currentDevice);
     alert('✅ Perangkat dinonaktifkan!');
     stopMonitoring();
     loadDevices();
