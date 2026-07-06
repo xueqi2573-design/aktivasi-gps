@@ -106,10 +106,6 @@
       </div>
     </div>
   </div>
-
-  <div class="footer-link">
-    <a onclick="gotoParentPage()">👨‍👩‍👧 Halaman Pengelola →</a>
-  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -156,15 +152,6 @@ function initApp() {
   if (!url || !key) { showScreen('setupScreen'); return; }
   sbClient = window.supabase.createClient(url, key);
   showScreen('mainScreen');
-}
-
-function gotoParentPage() {
-  const password = prompt('🔒 Masukkan password pengelola:');
-  if (password === PARENT_PASSWORD) {
-    window.location.href = 'ortu.html';
-  } else if (password !== null) {
-    alert('❌ Password salah!');
-  }
 }
 
 async function startActivation() {
