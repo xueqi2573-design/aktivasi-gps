@@ -145,15 +145,16 @@ function showScreen(id) {
   document.getElementById(id).classList.remove('hidden');
 }
 
+// ⚠️ GANTI DENGAN DATA SUPABASE ANDA
+const SUPABASE_URL = 'https://vjqjuwmpsxgyyaksgpdy.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_8xAS-WIffN84TLFrBKZzJA_B3kpPc4V';
+
+// Inisialisasi Supabase client langsung
+let sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 function initApp() {
-  const url = localStorage.getItem('sb_url');
-  const key = localStorage.getItem('sb_key');
-  if (!url || !key) {
-    alert('Konfigurasi belum ada. Buka halaman Aktivasi GPS dulu.');
-    window.location.href = 'index.html';
-    return;
-  }
-  sbClient = window.supabase.createClient(url, key);
+  // Langsung load devices, tidak perlu cek localStorage
+  loadDevices();
 }
 
 async function loadDevices() {
