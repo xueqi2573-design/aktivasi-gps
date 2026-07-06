@@ -84,8 +84,12 @@ let marker = null;
 function saveSetup() {
   console.log('🔵 saveSetup dipanggil');
   
-  const url = document.getElementById('sbUrl').value.trim();
+  let url = document.getElementById('sbUrl').value.trim();
   const key = document.getElementById('sbKey').value.trim();
+  
+  // AUTO-FIX: Hapus /rest/v1 kalau ada
+  url = url.replace('/rest/v1', '').replace('/rest', '');
+  console.log('URL setelah fix:', url);
   
   if (!url || !key) {
     alert('⚠️ URL dan Key harus diisi!');
@@ -101,12 +105,11 @@ function saveSetup() {
     localStorage.setItem('sb_url', url);
     localStorage.setItem('sb_key', key);
     
-    // PENTING: Inisialisasi sbClient SEKARANG!
     sbClient = window.supabase.createClient(url, key);
-    console.log('✅ sbClient dibuat dan siap!');
+    console.log('✅ sbClient dibuat:', url);
     
     document.getElementById('setupStatus').className = 'status ok';
-    document.getElementById('setupStatus').textContent = '✅ Tersimpan! Memuat...';
+    document.getElementById('setupStatus').textContent = '✅ Tersimpan!';
     
     setTimeout(() => {
       showScreen('modeScreen');
@@ -114,10 +117,9 @@ function saveSetup() {
   } catch (e) {
     console.error('❌ Error:', e);
     document.getElementById('setupStatus').className = 'status err';
-    document.getElementById('setupStatus').textContent = '❌ Error: ' + e.message;
+    document.getElementById('setupStatus').textContent = '❌ ' + e.message;
   }
 }
-
 function resetSetup() {
   localStorage.removeItem('sb_url');
   localStorage.removeItem('sb_key');
