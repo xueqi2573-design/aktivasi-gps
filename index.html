@@ -9,215 +9,131 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; background: #f0f2f5; }
-  .screen { padding: 15px; max-width: 500px; margin: 0 auto; }
-  h1 { color: #1877f2; margin-bottom: 10px; font-size: 22px; }
-  h2 { color: #333; font-size: 16px; margin-bottom: 8px; }
-  .card { background: white; padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.08); margin-bottom: 12px; }
-  button { background: #1877f2; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-size: 15px; cursor: pointer; width: 100%; margin-top: 8px; }
-  button.alt { background: #42b72a; }
-  button.warn { background: #dc3545; }
-  button.sec { background: #6c757d; }
+  body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; background: #f0f2f5; padding: 20px; }
+  .container { max-width: 500px; margin: 0 auto; }
+  .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.1); margin-bottom: 15px; }
+  h1 { color: #1877f2; margin-bottom: 15px; font-size: 24px; }
+  h2 { color: #333; font-size: 18px; margin-bottom: 10px; }
+  button { background: #1877f2; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; margin-top: 10px; }
+  button:hover { background: #1565c0; }
   button:disabled { background: #ccc; cursor: not-allowed; }
-  input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; margin-top: 6px; }
-  label { font-weight: 600; color: #333; font-size: 14px; }
-  .status { padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 13px; }
+  input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; margin-top: 8px; }
+  label { font-weight: 600; color: #333; font-size: 14px; display: block; margin-top: 12px; }
+  .status { padding: 12px; border-radius: 8px; margin-top: 15px; font-size: 14px; }
   .ok { background: #d4edda; color: #155724; }
   .err { background: #f8d7da; color: #721c24; }
   .info { background: #e7f3ff; color: #004085; }
-  #map, #historyMap { height: 350px; width: 100%; border-radius: 12px; }
-  .info-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 13px; }
-  .info-row:last-child { border-bottom: none; }
-  .warn { background: #fff3cd; color: #856404; padding: 10px; border-radius: 8px; font-size: 12px; margin-bottom: 10px; }
-  .switch { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-  .badge.ok { background: #28a745; color: white; }
-  .badge.bad { background: #dc3545; color: white; }
-  .badge.warn { background: #ffc107; color: #333; }
-  .alert-log { max-height: 150px; overflow-y: auto; font-size: 12px; background: #f8f9fa; padding: 8px; border-radius: 6px; margin-top: 8px; }
-  .alert-item { padding: 4px 0; border-bottom: 1px solid #e9ecef; }
   .hidden { display: none !important; }
-  .tabs { display: flex; gap: 8px; margin-bottom: 12px; }
-  .tab { flex: 1; padding: 10px; text-align: center; background: #e9ecef; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
-  .tab.active { background: #1877f2; color: white; }
+  #map { height: 300px; border-radius: 8px; margin-top: 10px; }
 </style>
 </head>
 <body>
 
-<!-- SCREEN 1: SETUP -->
-<div id="setupScreen" class="screen">
-  <div class="card">
+<div class="container">
+  <!-- SETUP SCREEN -->
+  <div id="setupScreen" class="card">
     <h1>🔧 Setup Supabase</h1>
-    <p style="color:#666;font-size:13px;margin-bottom:10px;">Masukkan data dari Supabase Anda (hanya pertama kali):</p>
+    <p style="color:#666;margin-bottom:15px;">Masukkan data dari Supabase Anda:</p>
+    
     <label>Project URL:</label>
     <input id="sbUrl" type="url" placeholder="https://xxxxx.supabase.co">
-    <label style="margin-top:10px;display:block;">Publishable Key (anon):</label>
+    
+    <label>Publishable Key (anon):</label>
     <input id="sbKey" type="text" placeholder="sb_p... atau eyJ...">
+    
     <button onclick="saveSetup()">💾 Simpan & Lanjut</button>
-    <div id="setupStatus" class="status info">Data disimpan di HP Anda (tidak dikirim ke mana pun)</div>
+    <div id="setupStatus" class="status info">Siap...</div>
   </div>
-</div>
 
-<!-- SCREEN 2: MODE SELECTION -->
-<div id="modeScreen" class="screen hidden">
-  <div class="card">
-    <h1>👨‍👩‍👧 Aktivasi GPS</h1>
-    <p style="margin:10px 0;color:#555;font-size:14px;">Pilih peran Anda:</p>
+  <!-- MODE SCREEN -->
+  <div id="modeScreen" class="card hidden">
+    <h1>👨‍‍👧 Aktivasi GPS</h1>
+    <p style="margin:15px 0;color:#555;">Pilih peran Anda:</p>
     <button onclick="setMode('child')">📱 Saya ANAK (HP yang dilacak)</button>
-    <button class="alt" onclick="setMode('parent')">👨‍👩‍👦 Saya ORANG TUA (melihat lokasi)</button>
-    <button class="sec" onclick="resetSetup()">⚙️ Ganti Supabase Config</button>
+    <button onclick="setMode('parent')" style="background:#42b72a;">👨‍‍👦 Saya ORANG TUA (melihat lokasi)</button>
+    <button onclick="resetSetup()" style="background:#6c757d;">⚙️ Reset Setup</button>
   </div>
-  <div class="warn">
-    ⚠️ <b>WAJIB:</b> Gunakan dengan sepengetahuan anak.<br>
-    💡 <b>Tips:</b> "Add to Home Screen" untuk install sebagai app.
-  </div>
-</div>
 
-<!-- SCREEN 3: CHILD MODE -->
-<div id="childScreen" class="screen hidden">
-  <div class="card">
+  <!-- CHILD SCREEN -->
+  <div id="childScreen" class="card hidden">
     <h1>📱 Mode Anak</h1>
     <label>Kode Keluarga:</label>
-    <input id="childCode" type="text" placeholder="contoh: keluargaku2026" maxlength="30">
-    <label style="margin-top:12px;display:block;">Interval kirim (detik):</label>
-    <input id="interval" type="number" value="30" min="10" max="300">
-
-    <div class="switch">
-      <span>🔒 Layar tetap aktif</span>
-      <input type="checkbox" id="wakeLock" checked style="width:auto;">
-    </div>
-    <div class="switch">
-      <span>🎵 Anti-sleep (audio trick)</span>
-      <input type="checkbox" id="audioTrick" checked style="width:auto;">
-    </div>
-
+    <input id="childCode" type="text" placeholder="contoh: keluargaku2026">
+    
+    <label>Interval (detik):</label>
+    <input id="interval" type="number" value="30" min="10">
+    
     <button onclick="startChild()">🚀 Mulai Kirim Lokasi</button>
-    <button class="warn" onclick="stopChild()" id="stopBtn" disabled>⏹ Berhenti</button>
-    <div id="childStatus" class="status info">Siap memulai...</div>
+    <button onclick="stopChild()" style="background:#dc3545;" id="stopBtn" disabled>⏹ Berhenti</button>
+    <div id="childStatus" class="status info">Siap...</div>
   </div>
 
-  <div class="card">
-    <h2>📊 Status Live</h2>
-    <div class="info-row"><span>🔋 Baterai:</span><span id="childBatt">-</span></div>
-    <div class="info-row"><span>📡 Database:</span><span id="childConn">-</span></div>
-    <div class="info-row"><span>🎯 Akurasi:</span><span id="childAcc">-</span></div>
-    <div class="info-row"><span>📤 Terkirim:</span><span id="childSent">0</span></div>
-    <div class="info-row"><span>📏 Zona:</span><span id="childZone">Menunggu...</span></div>
-  </div>
-</div>
-
-<!-- SCREEN 4: PARENT MODE -->
-<div id="parentScreen" class="screen hidden">
-  <div class="card">
-    <h1>👨‍👩‍👦 Mode Orang Tua</h1>
+  <!-- PARENT SCREEN -->
+  <div id="parentScreen" class="card hidden">
+    <h1>👨‍👩‍ Mode Orang Tua</h1>
     <label>Kode Keluarga:</label>
-    <input id="parentCode" type="text" placeholder="contoh: keluargaku2026" maxlength="30">
+    <input id="parentCode" type="text" placeholder="contoh: keluargaku2026">
+    
     <button onclick="startParent()">📡 Mulai Melacak</button>
-    <button class="sec" onclick="requestNotifPermission()">🔔 Aktifkan Notifikasi</button>
     <div id="parentStatus" class="status info">Menunggu...</div>
-  </div>
-
-  <!-- TABS -->
-  <div class="tabs">
-    <div class="tab active" onclick="switchTab('live')">📍 Live</div>
-    <div class="tab" onclick="switchTab('history')">📜 Riwayat</div>
-    <div class="tab" onclick="switchTab('geofence')">🛡️ Zona</div>
-  </div>
-
-  <!-- TAB: LIVE -->
-  <div id="tab-live">
-    <div class="card">
-      <h2>🗺️ Peta Live</h2>
+    
+    <div id="mapContainer" class="hidden">
+      <h2 style="margin-top:20px;">🗺️ Peta</h2>
       <div id="map"></div>
-    </div>
-    <div class="card">
-      <h2>📊 Info Anak</h2>
-      <div class="info-row"><span>📍 Lokasi:</span><span id="infoLoc">-</span></div>
-      <div class="info-row"><span>⏱ Update:</span><span id="infoTime">-</span></div>
-      <div class="info-row"><span>🎯 Akurasi:</span><span id="infoAcc">-</span></div>
-      <div class="info-row"><span>🔋 Baterai:</span><span id="infoBatt">-</span></div>
-      <div class="info-row"><span>📏 Status Zona:</span><span id="infoZone">-</span></div>
-    </div>
-    <div class="card">
-      <h2>🚨 Alert Terbaru</h2>
-      <div id="alertLog" class="alert-log"><em>Belum ada alert</em></div>
-    </div>
-  </div>
-
-  <!-- TAB: HISTORY -->
-  <div id="tab-history" class="hidden">
-    <div class="card">
-      <h2>📜 Riwayat Perjalanan</h2>
-      <label>Dari tanggal:</label>
-      <input id="histFrom" type="date">
-      <label style="margin-top:8px;display:block;">Sampai tanggal:</label>
-      <input id="histTo" type="date">
-      <button onclick="loadHistory()">🔍 Tampilkan Riwayat</button>
-    </div>
-    <div class="card">
-      <h2>🗺️ Peta Riwayat</h2>
-      <div id="historyMap"></div>
-      <div id="historyInfo" style="margin-top:10px;font-size:13px;color:#555;">
-        Klik "Tampilkan Riwayat" untuk melihat jalur perjalanan anak
-      </div>
-    </div>
-  </div>
-
-  <!-- TAB: GEOFENCE -->
-  <div id="tab-geofence" class="hidden">
-    <div class="card">
-      <h2>🛡️ Zona Aman</h2>
-      <p style="font-size:13px;color:#666;margin-bottom:10px;">Klik peta untuk pilih pusat zona aman:</p>
-      <div id="geofenceMap" style="height:300px;border-radius:12px;"></div>
-      <label style="margin-top:10px;display:block;">Radius (meter):</label>
-      <input id="zoneRadius" type="number" value="200" min="50" max="5000">
-      <button class="alt" onclick="saveZone()">💾 Simpan Zona</button>
-      <button class="warn" onclick="clearZone()">🗑️ Hapus Zona</button>
-      <div id="zoneStatus" class="status info">Klik peta untuk set pusat zona</div>
+      <div id="infoLoc" style="margin-top:10px;font-size:14px;"></div>
     </div>
   </div>
 </div>
 
-<!-- LIBRARIES -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-// ============ GLOBAL ============
+console.log('🚀 Aplikasi dimulai');
+console.log('Supabase library:', typeof window.supabase);
+
 let supabase = null;
 let watchId = null;
 let sendTimer = null;
-let lastLatLng = null;
-let zoneCenter = null;
-let zoneRadius = null;
-let lastZoneStatus = 'unknown';
-let wakeLock = null;
-let audioCtx = null;
-let batteryLevel = null;
-let isCharging = false;
-let sentCount = 0;
-let familyCode = '';
-
-let liveMap, historyMap, geofenceMap;
-let marker, accuracyCircle, zoneCircle, historyPolyline;
+let map = null;
+let marker = null;
 
 // ============ SETUP ============
 function saveSetup() {
+  console.log('🔵 saveSetup dipanggil');
+  
   const url = document.getElementById('sbUrl').value.trim();
   const key = document.getElementById('sbKey').value.trim();
+  
+  console.log('URL:', url);
+  console.log('Key:', key ? key.substring(0, 20) + '...' : '(kosong)');
+  
   if (!url || !key) {
-    alert('Isi URL dan Key!');
+    alert('⚠️ URL dan Key harus diisi!');
     return;
   }
+  
   if (!url.includes('supabase.co')) {
-    alert('URL tidak valid. Format: https://xxx.supabase.co');
+    alert('⚠️ URL tidak valid! Format: https://xxx.supabase.co');
     return;
   }
-  localStorage.setItem('sb_url', url);
-  localStorage.setItem('sb_key', key);
-  document.getElementById('setupStatus').className = 'status ok';
-  document.getElementById('setupStatus').textContent = '✅ Tersimpan! Memuat...';
-  setTimeout(initApp, 500);
+  
+  try {
+    localStorage.setItem('sb_url', url);
+    localStorage.setItem('sb_key', key);
+    console.log('✅ Data disimpan ke localStorage');
+    
+    document.getElementById('setupStatus').className = 'status ok';
+    document.getElementById('setupStatus').textContent = '✅ Tersimpan! Memuat...';
+    
+    setTimeout(() => {
+      showScreen('modeScreen');
+    }, 1000);
+  } catch (e) {
+    console.error('❌ Error:', e);
+    document.getElementById('setupStatus').className = 'status err';
+    document.getElementById('setupStatus').textContent = '❌ Error: ' + e.message;
+  }
 }
 
 function resetSetup() {
@@ -227,527 +143,204 @@ function resetSetup() {
 }
 
 function showScreen(id) {
-  ['setupScreen','modeScreen','childScreen','parentScreen'].forEach(s => {
+  console.log('🔄 Pindah ke:', id);
+  ['setupScreen', 'modeScreen', 'childScreen', 'parentScreen'].forEach(s => {
     document.getElementById(s).classList.add('hidden');
   });
   document.getElementById(id).classList.remove('hidden');
 }
 
 function initApp() {
+  console.log('🔵 initApp dipanggil');
+  
   const url = localStorage.getItem('sb_url');
   const key = localStorage.getItem('sb_key');
+  
+  console.log('URL dari storage:', url);
+  console.log('Key dari storage:', key ? '(ada)' : '(tidak ada)');
+  
   if (!url || !key) {
+    console.log('️ Belum setup, tampilkan setup screen');
     showScreen('setupScreen');
     return;
   }
+  
   try {
     supabase = window.supabase.createClient(url, key);
+    console.log('✅ Supabase client dibuat');
     showScreen('modeScreen');
   } catch (e) {
+    console.error('❌ Gagal buat Supabase client:', e);
     alert('Gagal connect ke Supabase: ' + e.message);
     showScreen('setupScreen');
   }
 }
 
-// Panggil saat halaman load
-window.addEventListener('load', initApp);
-
-// ============ MODE SWITCH ============
+// ============ MODE ============
 function setMode(mode) {
+  console.log('🔵 setMode:', mode);
+  
   if (mode === 'child') {
     showScreen('childScreen');
   } else {
     showScreen('parentScreen');
-    initLiveMap();
-    initHistoryMap();
-    initGeofenceMap();
-    // Set default tanggal riwayat
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('histFrom').value = today;
-    document.getElementById('histTo').value = today;
+    initMap();
   }
 }
 
-// ============ TABS ============
-function switchTab(tab) {
-  document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
-  ['live','history','geofence'].forEach(t => {
-    document.getElementById('tab-'+t).classList.add('hidden');
-  });
-  document.getElementById('tab-'+tab).classList.remove('hidden');
-  if (tab === 'geofence') {
-    setTimeout(() => geofenceMap.invalidateSize(), 100);
-  }
-  if (tab === 'history') {
-    setTimeout(() => historyMap.invalidateSize(), 100);
-  }
-}
-
-// ============ MAPS ============
-function initLiveMap() {
-  liveMap = L.map('map').setView([-2.5, 118], 4);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap', maxZoom: 19
-  }).addTo(liveMap);
-}
-
-function initHistoryMap() {
-  historyMap = L.map('historyMap').setView([-2.5, 118], 4);
+function initMap() {
+  if (map) return;
+  console.log('🔵 initMap dipanggil');
+  map = L.map('map').setView([-2.5, 118], 4);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
-  }).addTo(historyMap);
+  }).addTo(map);
 }
 
-function initGeofenceMap() {
-  geofenceMap = L.map('geofenceMap').setView([-2.5, 118], 4);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap'
-  }).addTo(geofenceMap);
-  
-  geofenceMap.on('click', (e) => {
-    zoneCenter = { lat: e.latlng.lat, lng: e.latlng.lng };
-    updateGeofenceMap();
-    document.getElementById('zoneStatus').className = 'status ok';
-    document.getElementById('zoneStatus').textContent = 
-      `✅ Pusat: ${zoneCenter.lat.toFixed(5)}, ${zoneCenter.lng.toFixed(5)}`;
-  });
-}
-
-function updateGeofenceMap() {
-  if (!zoneCenter) return;
-  const radius = parseInt(document.getElementById('zoneRadius').value) || 200;
-  
-  if (zoneCircle) geofenceMap.removeLayer(zoneCircle);
-  zoneCircle = L.circle([zoneCenter.lat, zoneCenter.lng], {
-    radius: radius, color: '#28a745', fillOpacity: 0.2
-  }).addTo(geofenceMap);
-  geofenceMap.setView([zoneCenter.lat, zoneCenter.lng], 15);
-}
-
-// ============ BATTERY ============
-async function initBattery() {
-  if (!navigator.getBattery) return;
-  try {
-    const batt = await navigator.getBattery();
-    const update = () => {
-      batteryLevel = Math.round(batt.level * 100);
-      isCharging = batt.charging;
-      updateChildBatteryUI();
-    };
-    batt.addEventListener('levelchange', update);
-    batt.addEventListener('chargingchange', update);
-    update();
-  } catch (e) {}
-}
-
-function updateChildBatteryUI() {
-  const el = document.getElementById('childBatt');
-  if (batteryLevel === null) { el.textContent = 'N/A'; return; }
-  const icon = isCharging ? '⚡' : (batteryLevel < 20 ? '🪫' : '🔋');
-  el.textContent = `${icon} ${batteryLevel}%${isCharging ? ' (charging)' : ''}`;
-}
-
-// ============ WAKE LOCK ============
-async function requestWakeLock() {
-  if (!('wakeLock' in navigator)) {
-    document.getElementById('childConn').textContent = 'Wake Lock: N/A';
+// ============ CHILD ============
+function startChild() {
+  const code = document.getElementById('childCode').value.trim();
+  if (!code) {
+    alert('Masukkan kode keluarga!');
     return;
   }
-  try {
-    wakeLock = await navigator.wakeLock.request('screen');
-    document.addEventListener('visibilitychange', async () => {
-      if (document.visibilityState === 'visible' && wakeLock === null) {
-        try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e){}
-      }
-    });
-  } catch (e) {}
-}
-
-function startAudioTrick() {
-  try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain); gain.connect(audioCtx.destination);
-    gain.gain.value = 0.0001; osc.frequency.value = 1;
-    osc.start();
-  } catch (e) {}
-}
-
-// ============ CHILD MODE ============
-async function startChild() {
-  familyCode = document.getElementById('childCode').value.trim();
-  if (!familyCode) { alert('Masukkan kode keluarga!'); return; }
   
   const interval = parseInt(document.getElementById('interval').value) * 1000;
   const status = document.getElementById('childStatus');
   
   status.className = 'status info';
-  status.textContent = 'Memulai...';
+  status.textContent = 'Memulai GPS...';
   
-  await initBattery();
-  if (document.getElementById('wakeLock').checked) requestWakeLock();
-  if (document.getElementById('audioTrick').checked) startAudioTrick();
-  
-  document.getElementById('childConn').innerHTML = '<span class="badge ok">ONLINE</span>';
-  
-  // Ambil zona dari database
-  await loadZone();
-  
-  // Mulai GPS
   if (!navigator.geolocation) {
     status.className = 'status err';
-    status.textContent = '❌ Browser tidak support GPS';
+    status.textContent = ' Browser tidak support GPS';
     return;
   }
   
   watchId = navigator.geolocation.watchPosition(
     (pos) => {
-      lastLatLng = {
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude,
-        acc: pos.coords.accuracy,
-        time: new Date().toISOString()
-      };
-      document.getElementById('childAcc').textContent = `±${Math.round(pos.coords.accuracy)}m`;
-      checkGeofence();
+      console.log('📍 Lokasi:', pos.coords.latitude, pos.coords.longitude);
+      sendLocation(code, pos.coords);
     },
     (err) => {
+      console.error('❌ GPS error:', err);
       status.className = 'status err';
       status.textContent = '❌ GPS: ' + err.message;
     },
-    { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+    { enableHighAccuracy: true }
   );
   
-  // Kirim berkala
-  sendTimer = setInterval(sendLocation, interval);
-  await sendLocation(); // kirim sekali segera
+  sendTimer = setInterval(() => {
+    console.log('️ Interval trigger');
+  }, interval);
   
-  document.getElementById('stopBtn').disabled = false;
   status.className = 'status ok';
-  status.textContent = '✅ Aktif - Kirim tiap ' + (interval/1000) + ' detik';
-  
-  // Subscribe zona (jika orang tua ubah zona)
-  supabase.channel('geofence-' + familyCode)
-    .on('postgres_changes', 
-      { event: '*', schema: 'public', table: 'geofences', filter: `family_code=eq.${familyCode}` },
-      async (payload) => {
-        await loadZone();
-      }
-    ).subscribe();
+  status.textContent = '✅ GPS aktif! Kirim tiap ' + (interval/1000) + ' detik';
+  document.getElementById('stopBtn').disabled = false;
 }
 
-async function sendLocation() {
-  if (!lastLatLng) return;
+async function sendLocation(code, coords) {
   try {
-    const { error } = await supabase.from('locations').insert({
-      family_code: familyCode,
-      lat: lastLatLng.lat,
-      lng: lastLatLng.lng,
-      accuracy: lastLatLng.acc,
-      battery: batteryLevel,
-      charging: isCharging
-    });
-    if (error) throw error;
-    sentCount++;
-    document.getElementById('childSent').textContent = sentCount;
-    document.getElementById('childStatus').textContent = 
-      `✅ Terkirim #${sentCount} @ ${new Date().toLocaleTimeString('id-ID')}`;
-  } catch (e) {
-    document.getElementById('childStatus').className = 'status err';
-    document.getElementById('childStatus').textContent = '❌ Gagal kirim: ' + e.message;
-  }
-}
-
-async function loadZone() {
-  try {
-    const { data, error } = await supabase
-      .from('geofences')
-      .select('*')
-      .eq('family_code', familyCode)
-      .single();
+    console.log('📤 Mengirim lokasi ke Supabase...');
     
-    if (data) {
-      zoneCenter = { lat: data.lat, lng: data.lng };
-      zoneRadius = data.radius;
-      document.getElementById('childZone').innerHTML = 
-        `<span class="badge ok">AKTIF r=${data.radius}m</span>`;
-    } else {
-      zoneCenter = null;
-      zoneRadius = null;
-      document.getElementById('childZone').innerHTML = 
-        '<span class="badge warn">BELUM DI-SET</span>';
-    }
+    const { data, error } = await supabase
+      .from('locations')
+      .insert({
+        family_code: code,
+        lat: coords.latitude,
+        lng: coords.longitude,
+        accuracy: coords.accuracy
+      });
+    
+    if (error) throw error;
+    
+    console.log('✅ Lokasi terkirim:', data);
+    document.getElementById('childStatus').textContent = 
+      `✅ Terkirim @ ${new Date().toLocaleTimeString('id-ID')}`;
   } catch (e) {
-    // Tidak ada zona
-    document.getElementById('childZone').textContent = 'Belum ada';
+    console.error('❌ Gagal kirim:', e);
+    document.getElementById('childStatus').className = 'status err';
+    document.getElementById('childStatus').textContent = '❌ Gagal: ' + e.message;
   }
-}
-
-async function checkGeofence() {
-  if (!zoneCenter || !zoneRadius || !lastLatLng) return;
-  const dist = haversine(lastLatLng.lat, lastLatLng.lng, zoneCenter.lat, zoneCenter.lng);
-  const newStatus = dist <= zoneRadius ? 'inside' : 'outside';
-  
-  if (newStatus !== lastZoneStatus && lastZoneStatus !== 'unknown') {
-    // Simpan alert ke database
-    await supabase.from('alerts').insert({
-      family_code: familyCode,
-      type: newStatus === 'outside' ? 'ZONE_EXIT' : 'ZONE_ENTER',
-      lat: lastLatLng.lat,
-      lng: lastLatLng.lng,
-      distance: Math.round(dist),
-      battery: batteryLevel
-    });
-  }
-  lastZoneStatus = newStatus;
-}
-
-function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371000;
-  const toRad = x => x * Math.PI / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
 function stopChild() {
-  if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+  if (watchId) navigator.geolocation.clearWatch(watchId);
   if (sendTimer) clearInterval(sendTimer);
-  if (wakeLock) { wakeLock.release(); wakeLock = null; }
-  if (audioCtx) { audioCtx.close(); audioCtx = null; }
   watchId = sendTimer = null;
   document.getElementById('childStatus').className = 'status info';
   document.getElementById('childStatus').textContent = 'Dihentikan.';
-  document.getElementById('childConn').innerHTML = '<span class="badge bad">OFF</span>';
   document.getElementById('stopBtn').disabled = true;
 }
 
-// ============ PARENT MODE ============
-let parentChannel = null;
-let alertChannel = null;
-
+// ============ PARENT ============
 async function startParent() {
-  familyCode = document.getElementById('parentCode').value.trim();
-  if (!familyCode) { alert('Masukkan kode keluarga!'); return; }
+  const code = document.getElementById('parentCode').value.trim();
+  if (!code) {
+    alert('Masukkan kode keluarga!');
+    return;
+  }
   
   const status = document.getElementById('parentStatus');
   status.className = 'status info';
   status.textContent = 'Menghubungkan...';
   
-  // Ambil lokasi terakhir
-  const { data: lastLoc } = await supabase
-    .from('locations')
-    .select('*')
-    .eq('family_code', familyCode)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single();
-  
-  if (lastLoc) updateLiveMap(lastLoc);
-  
-  // Subscribe realtime lokasi
-  parentChannel = supabase.channel('locations-' + familyCode)
-    .on('postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'locations', filter: `family_code=eq.${familyCode}` },
-      (payload) => updateLiveMap(payload.new)
-    ).subscribe();
-  
-  // Subscribe realtime alert
-  alertChannel = supabase.channel('alerts-' + familyCode)
-    .on('postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'alerts', filter: `family_code=eq.${familyCode}` },
-      (payload) => handleAlert(payload.new)
-    ).subscribe();
-  
-  // Load zona yang ada
-  await loadParentZone();
-  
-  // Load alert history
-  await loadAlertHistory();
-  
-  status.className = 'status ok';
-  status.textContent = '📡 Live - Mendengarkan...';
-}
-
-function updateLiveMap(data) {
-  const { lat, lng, accuracy, created_at, battery, charging } = data;
-  
-  if (!marker) {
-    marker = L.marker([lat, lng]).addTo(liveMap);
-    accuracyCircle = L.circle([lat, lng], {
-      radius: accuracy, color: '#1877f2', fillOpacity: 0.1
-    }).addTo(liveMap);
-    liveMap.setView([lat, lng], 16);
-  } else {
-    marker.setLatLng([lat, lng]);
-    accuracyCircle.setLatLng([lat, lng]).setRadius(accuracy);
-    liveMap.panTo([lat, lng]);
-  }
-  
-  document.getElementById('infoLoc').textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-  document.getElementById('infoTime').textContent = new Date(created_at).toLocaleString('id-ID');
-  document.getElementById('infoAcc').textContent = `±${Math.round(accuracy)}m`;
-  
-  if (battery !== null) {
-    const icon = charging ? '⚡' : (battery < 20 ? '🪫' : '🔋');
-    document.getElementById('infoBatt').textContent = `${icon} ${battery}%`;
-  }
-  
-  // Cek status zona
-  if (zoneCenter && zoneRadius) {
-    const dist = haversine(lat, lng, zoneCenter.lat, zoneCenter.lng);
-    const inside = dist <= zoneRadius;
-    document.getElementById('infoZone').innerHTML = inside
-      ? '<span class="badge ok">DI DALAM ZONA</span>'
-      : `<span class="badge bad">DI LUAR (${Math.round(dist)}m)</span>`;
-  }
-}
-
-async function loadAlertHistory() {
-  const { data } = await supabase
-    .from('alerts')
-    .select('*')
-    .eq('family_code', familyCode)
-    .order('created_at', { ascending: false })
-    .limit(20);
-  
-  if (data && data.length > 0) {
-    const log = document.getElementById('alertLog');
-    log.innerHTML = '';
-    data.forEach(alert => handleAlert(alert, false));
-  }
-}
-
-function handleAlert(alert, notify = true) {
-  const log = document.getElementById('alertLog');
-  if (log.querySelector('em')) log.innerHTML = '';
-  
-  const time = new Date(alert.created_at).toLocaleString('id-ID');
-  const msg = alert.type === 'ZONE_EXIT'
-    ? `🚨 <b>KELUAR ZONA</b> — ${time} — ${alert.distance}m — 🔋${alert.battery ?? '?'}%`
-    : `✅ <b>MASUK ZONA</b> — ${time}`;
-  
-  const item = document.createElement('div');
-  item.className = 'alert-item';
-  item.innerHTML = msg;
-  log.insertBefore(item, log.firstChild);
-  
-  if (notify && Notification.permission === 'granted') {
-    new Notification(alert.type === 'ZONE_EXIT' ? '🚨 Anak Keluar Zona!' : '✅ Anak Masuk Zona', {
-      body: msg.replace(/<[^>]+>/g, '')
-    });
-  }
-}
-
-async function loadParentZone() {
   try {
-    const { data } = await supabase
-      .from('geofences')
+    // Ambil lokasi terakhir
+    const { data, error } = await supabase
+      .from('locations')
       .select('*')
-      .eq('family_code', familyCode)
+      .eq('family_code', code)
+      .order('created_at', { ascending: false })
+      .limit(1)
       .single();
     
+    if (error) throw error;
+    
     if (data) {
-      zoneCenter = { lat: data.lat, lng: data.lng };
-      zoneRadius = data.radius;
-      document.getElementById('zoneRadius').value = data.radius;
-      updateGeofenceMap();
+      console.log('📍 Lokasi terakhir:', data);
+      updateMap(data);
+      document.getElementById('mapContainer').classList.remove('hidden');
     }
-  } catch (e) {}
+    
+    // Subscribe realtime
+    supabase.channel('locations-' + code)
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'locations', filter: `family_code=eq.${code}` },
+        (payload) => {
+          console.log(' Realtime update:', payload.new);
+          updateMap(payload.new);
+          document.getElementById('mapContainer').classList.remove('hidden');
+        }
+      ).subscribe();
+    
+    status.className = 'status ok';
+    status.textContent = '📡 Live - Mendengarkan...';
+  } catch (e) {
+    console.error('❌ Error:', e);
+    status.className = 'status err';
+    status.textContent = '❌ ' + e.message;
+  }
 }
 
-async function saveZone() {
-  if (!zoneCenter) { alert('Klik peta dulu!'); return; }
-  const radius = parseInt(document.getElementById('zoneRadius').value);
-  
-  const { error } = await supabase.from('geofences').upsert({
-    family_code: familyCode,
-    lat: zoneCenter.lat,
-    lng: zoneCenter.lng,
-    radius: radius
-  }, { onConflict: 'family_code' });
-  
-  if (error) {
-    alert('Gagal simpan: ' + error.message);
-    return;
+function updateMap(data) {
+  if (!marker) {
+    marker = L.marker([data.lat, data.lng]).addTo(map);
+    map.setView([data.lat, data.lng], 16);
+  } else {
+    marker.setLatLng([data.lat, data.lng]);
+    map.panTo([data.lat, data.lng]);
   }
   
-  zoneRadius = radius;
-  updateGeofenceMap();
-  document.getElementById('zoneStatus').className = 'status ok';
-  document.getElementById('zoneStatus').textContent = `✅ Zona tersimpan (r=${radius}m)`;
-  alert('✅ Zona tersimpan!');
+  document.getElementById('infoLoc').textContent = 
+    `📍 ${data.lat.toFixed(5)}, ${data.lng.toFixed(5)} (${new Date(data.created_at).toLocaleString('id-ID')})`;
 }
 
-async function clearZone() {
-  if (!confirm('Hapus zona aman?')) return;
-  await supabase.from('geofences').delete().eq('family_code', familyCode);
-  if (zoneCircle) geofenceMap.removeLayer(zoneCircle);
-  zoneCenter = null; zoneRadius = null;
-  document.getElementById('infoZone').textContent = '-';
-  document.getElementById('zoneStatus').className = 'status info';
-  document.getElementById('zoneStatus').textContent = 'Zona dihapus';
-}
-
-async function loadHistory() {
-  const from = document.getElementById('histFrom').value;
-  const to = document.getElementById('histTo').value;
-  if (!from || !to) { alert('Pilih tanggal!'); return; }
-  
-  const fromISO = new Date(from + 'T00:00:00').toISOString();
-  const toISO = new Date(to + 'T23:59:59').toISOString();
-  
-  document.getElementById('historyInfo').textContent = 'Memuat...';
-  
-  const { data, error } = await supabase
-    .from('locations')
-    .select('lat, lng, created_at, battery')
-    .eq('family_code', familyCode)
-    .gte('created_at', fromISO)
-    .lte('created_at', toISO)
-    .order('created_at', { ascending: true });
-  
-  if (error) {
-    document.getElementById('historyInfo').textContent = '❌ ' + error.message;
-    return;
-  }
-  
-  if (!data || data.length === 0) {
-    document.getElementById('historyInfo').textContent = 'Tidak ada data di rentang tanggal ini';
-    return;
-  }
-  
-  // Hapus polyline lama
-  if (historyPolyline) historyMap.removeLayer(historyPolyline);
-  
-  // Gambar polyline
-  const latlngs = data.map(d => [d.lat, d.lng]);
-  historyPolyline = L.polyline(latlngs, { color: '#1877f2', weight: 3 }).addTo(historyMap);
-  
-  // Marker start & end
-  L.marker(latlngs[0]).addTo(historyMap).bindPopup('🟢 Mulai: ' + new Date(data[0].created_at).toLocaleString('id-ID'));
-  L.marker(latlngs[latlngs.length-1]).addTo(historyMap).bindPopup('🔴 Akhir: ' + new Date(data[data.length-1].created_at).toLocaleString('id-ID'));
-  
-  historyMap.fitBounds(historyPolyline.getBounds());
-  
-  document.getElementById('historyInfo').innerHTML = 
-    `✅ <b>${data.length} titik lokasi</b> dari ${new Date(data[0].created_at).toLocaleString('id-ID')} sampai ${new Date(data[data.length-1].created_at).toLocaleString('id-ID')}`;
-}
-
-function requestNotifPermission() {
-  if (!('Notification' in window)) { alert('Browser tidak support'); return; }
-  Notification.requestPermission().then(p => {
-    alert(p === 'granted' ? '✅ Notifikasi aktif' : '❌ Ditolak');
-  });
-}
-
-// Service worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW:', e));
-}
+// ============ INIT ============
+window.addEventListener('load', () => {
+  console.log(' Page loaded');
+  initApp();
+});
 </script>
 </body>
 </html>
