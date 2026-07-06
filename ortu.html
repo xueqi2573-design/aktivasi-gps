@@ -260,16 +260,14 @@ async function startMonitoring() {
   document.getElementById('deactivateBtn').classList.remove('hidden');
   document.getElementById('mapContainer').classList.remove('hidden');
   
-  // FIX PETA ABU-ABU: Beri waktu sedikit, lalu suruh peta sesuaikan ukuran
-  setTimeout(() => {
-    map.invalidateSize();
-  }, 200);
+  setTimeout(() => { map.invalidateSize(); }, 200);
   
   const statusBox = document.getElementById('statusBox');
   statusBox.className = 'status info';
-  statusBox.textContent = 'Menghubungkan...';
+  statusBox.textContent = 'Menghubungkan & Membangunkan perangkat anak...';
   
   try {
+    // Ambil 1 data terakhir sebagai awalan
     const { data, error } = await sbClient
       .from(tableName)
       .select('*')
@@ -281,14 +279,28 @@ async function startMonitoring() {
     if (error && error.code !== 'PGRST116') throw error;
     if (data) updateDisplay(data);
     
-    channel = sbClient.channel('loc-' + currentDevice)
-      .on('postgres_changes',
-        { event: 'INSERT', schema: 'public', table: tableName, filter: 'family_code=eq.' + currentDevice },
-        (payload) => {
-          console.log('📡 Update:', payload.new);
-          updateDisplay(payload.new);
-        }
-      ).subscribe();
+    // BUKA KONEKSI REALTIME & BROADCAST
+    channel = sbClient.channel('koneksi-' + currentDevice);
+    
+    // 1. Dengarkan database jika ada koordinat baru masuk
+    channel.on('postgres_changes',
+      { event: 'INSERT', schema: 'public', table: tableName, filter: 'family_code=eq.' + currentDevice },
+      (payload) => {
+        updateDisplay(payload.new);
+      }
+    );
+
+    // 2. Dengarkan pancingan dari anak (jika anak baru buka aplikasi, ortu otomatis perintah MULAI)
+    channel.on('broadcast', { event: 'ping-anak' }, () => {
+        channel.send({ type: 'broadcast', event: 'perintah-ortu', payload: { aksi: 'MULAI' } });
+    });
+
+    // 3. Gabung ke channel dan kirim perintah MULAI pertama kali
+    channel.subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        channel.send({ type: 'broadcast', event: 'perintah-ortu', payload: { aksi: 'MULAI' } });
+      }
+    });
     
     statusBox.className = 'status ok';
     statusBox.textContent = '📡 Terhubung - memantau realtime';
@@ -344,14 +356,33 @@ async function deactivateDevice() {
 }
 
 function stopMonitoring() {
-  if (channel) { channel.unsubscribe(); channel = null; }
+  if (channel) { 
+    // KIRIM SINYAL BERHENTI KE ANAK SEBELUM KONEKSI ORTU DIPUTUS
+    channel.send({ type: 'broadcast', event: 'perintah-ortu', payload: { aksi: 'BERHENTI' } });
+    
+    channel.unsubscribe(); 
+    channel = null; 
+  }
+  
+  if (marker && map) {
+    map.removeLayer(marker);
+    marker = null; 
+  }
+
   document.getElementById('startBtn').classList.remove('hidden');
   document.getElementById('deactivateBtn').classList.add('hidden');
   document.getElementById('mapContainer').classList.add('hidden');
-  document.getElementById('statusBox').className = 'status info';
-  document.getElementById('statusBox').textContent = 'Pilih perangkat untuk memulai';
+  
+  if (currentDevice) {
+    document.getElementById('statusBox').className = 'status info';
+    document.getElementById('statusBox').textContent = 'Perangkat terpilih. Klik "Mulai Pantau"';
+    document.getElementById('startBtn').disabled = false;
+  } else {
+    document.getElementById('statusBox').className = 'status info';
+    document.getElementById('statusBox').textContent = 'Pilih perangkat untuk memulai';
+    document.getElementById('startBtn').disabled = true;
+  }
 }
-
 function logout() {
   showScreen('passwordScreen');
   document.getElementById('passwordInput').value = '';
