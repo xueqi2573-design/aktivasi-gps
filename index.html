@@ -107,12 +107,12 @@ function saveSetup() {
   console.log('Key:', key ? key.substring(0, 20) + '...' : '(kosong)');
   
   if (!url || !key) {
-    alert('️ URL dan Key harus diisi!');
+    alert('⚠️ URL dan Key harus diisi!');
     return;
   }
   
   if (!url.includes('supabase.co')) {
-    alert('️ URL tidak valid! Format: https://xxx.supabase.co');
+    alert('⚠️ URL tidak valid! Format: https://xxx.supabase.co');
     return;
   }
   
@@ -120,6 +120,10 @@ function saveSetup() {
     localStorage.setItem('sb_url', url);
     localStorage.setItem('sb_key', key);
     console.log('✅ Data disimpan ke localStorage');
+    
+    // PENTING: Inisialisasi sbClient SEKARANG juga!
+    sbClient = window.supabase.createClient(url, key);
+    console.log('✅ sbClient dibuat:', sbClient);
     
     document.getElementById('setupStatus').className = 'status ok';
     document.getElementById('setupStatus').textContent = '✅ Tersimpan! Memuat...';
