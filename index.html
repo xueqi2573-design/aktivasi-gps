@@ -207,7 +207,7 @@ function startGPS() {
     (err) => {
       console.error('GPS Error:', err.message);
     },
-    { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+    { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
   );
 }
 
