@@ -211,10 +211,36 @@ async function loadDevices() {
 
 function selectDevice() {
   currentDevice = document.getElementById('deviceSelect').value;
+  // Hentikan pemantauan sebelumnya setiap kali dropdown diganti
+  stopMonitoring(); 
+}
+
+function stopMonitoring() {
+  // 1. Putuskan koneksi realtime dari anak sebelumnya
+  if (channel) { 
+    channel.unsubscribe(); 
+    channel = null; 
+  }
+  
+  // 2. Hapus pin/marker lama dari peta agar tidak menumpuk
+  if (marker && map) {
+    map.removeLayer(marker);
+    marker = null; 
+  }
+
+  // 3. Kembalikan tampilan tombol ke posisi awal
+  document.getElementById('startBtn').classList.remove('hidden');
   document.getElementById('deactivateBtn').classList.add('hidden');
+  document.getElementById('mapContainer').classList.add('hidden');
+  document.getElementById('statusBox').className = 'status info';
+  
+  // 4. Atur teks status dan tombol berdasarkan pilihan
   if (currentDevice) {
-    document.getElementById('statusBox').className = 'status info';
     document.getElementById('statusBox').textContent = 'Perangkat terpilih. Klik "Mulai Pantau"';
+    document.getElementById('startBtn').disabled = false;
+  } else {
+    document.getElementById('statusBox').textContent = 'Pilih perangkat untuk memulai';
+    document.getElementById('startBtn').disabled = true;
   }
 }
 
