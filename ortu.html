@@ -15,41 +15,25 @@
   }
   .container { max-width: 600px; margin: 0 auto; }
   .card { 
-    background: white; 
-    padding: 25px; 
-    border-radius: 16px; 
-    box-shadow: 0 10px 40px rgba(0,0,0,.2);
-    margin-bottom: 15px;
+    background: white; padding: 25px; border-radius: 16px; 
+    box-shadow: 0 10px 40px rgba(0,0,0,.2); margin-bottom: 15px;
   }
-  .logo { 
-    text-align: center; 
-    margin-bottom: 20px;
-  }
+  .logo { text-align: center; margin-bottom: 20px; }
   .logo-icon { font-size: 42px; margin-bottom: 8px; }
   h1 { color: #1a202c; font-size: 24px; font-weight: 700; }
   .subtitle { color: #718096; font-size: 13px; margin-top: 4px; }
   button { 
     background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    color: white; 
-    border: none; 
-    padding: 13px 20px; 
-    border-radius: 10px; 
-    font-size: 15px; 
-    font-weight: 600;
-    cursor: pointer; 
-    width: 100%; 
-    margin-top: 10px;
+    color: white; border: none; padding: 13px 20px; border-radius: 10px; 
+    font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px;
   }
   button:hover { opacity: 0.9; }
   button:disabled { background: #cbd5e0; cursor: not-allowed; }
+  button.danger { background: linear-gradient(135deg, #f56565 0%, #c53030 100%); }
   button.secondary { background: #718096; }
   input { 
-    width: 100%; 
-    padding: 13px; 
-    border: 2px solid #e2e8f0; 
-    border-radius: 10px; 
-    font-size: 15px; 
-    margin-top: 6px;
+    width: 100%; padding: 13px; border: 2px solid #e2e8f0; border-radius: 10px; 
+    font-size: 15px; margin-top: 6px;
   }
   input:focus { outline: none; border-color: #11998e; }
   label { font-weight: 600; color: #2d3748; font-size: 13px; display: block; margin-top: 12px; }
@@ -59,60 +43,55 @@
   .info { background: #bee3f8; color: #2a4365; border-left: 4px solid #4299e1; }
   .hidden { display: none !important; }
   #map { height: 350px; border-radius: 12px; margin-top: 10px; }
-  .info-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 12px;
-  }
-  .info-item {
-    background: #f7fafc;
-    padding: 10px;
-    border-radius: 8px;
-  }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .info-item { background: #f7fafc; padding: 10px; border-radius: 8px; }
   .info-label { font-size: 11px; color: #718096; text-transform: uppercase; }
   .info-value { font-size: 14px; font-weight: 600; color: #2d3748; margin-top: 3px; word-break: break-all; }
-  .footer-link {
-    text-align: center;
-    margin-top: 15px;
-    font-size: 13px;
+  .device-list { margin-top: 15px; }
+  .device-item { 
+    background: #f7fafc; padding: 12px; border-radius: 8px; margin-bottom: 8px;
+    display: flex; justify-content: space-between; align-items: center;
   }
+  .device-name { font-weight: 600; color: #2d3748; }
+  .device-status { font-size: 12px; color: #48bb78; }
+  .footer-link { text-align: center; margin-top: 15px; font-size: 13px; }
   .footer-link a { color: white; text-decoration: none; opacity: 0.9; }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <!-- SETUP -->
-  <div id="setupScreen" class="card">
+  <!-- PASSWORD SCREEN -->
+  <div id="passwordScreen" class="card">
     <div class="logo">
-      <div class="logo-icon">👨‍‍👧</div>
-      <h1>Pantau Lokasi</h1>
-      <p class="subtitle">Konfigurasi awal</p>
+      <div class="logo-icon">🔒</div>
+      <h1>Halaman Pengelola</h1>
+      <p class="subtitle">Verifikasi identitas</p>
     </div>
-    <label>Server URL:</label>
-    <input id="sbUrl" type="url" placeholder="https://xxxxx.supabase.co">
-    <label>Access Key:</label>
-    <input id="sbKey" type="text" placeholder="sb_p...">
-    <button onclick="saveSetup()">💾 Simpan Konfigurasi</button>
-    <div id="setupStatus" class="status info">Menunggu input...</div>
+    <label>Password:</label>
+    <input id="passwordInput" type="password" placeholder="Masukkan password">
+    <button onclick="checkPassword()">🔓 Masuk</button>
+    <div id="passwordStatus" class="status info">Default: ortu123</div>
   </div>
 
-  <!-- MAIN -->
+  <!-- MAIN SCREEN -->
   <div id="mainScreen" class="card hidden">
     <div class="logo">
       <div class="logo-icon">🗺️</div>
       <h1>Pantau Lokasi</h1>
-      <p class="subtitle">Lihat lokasi perangkat terdaftar</p>
+      <p class="subtitle">Kontrol perangkat terdaftar</p>
     </div>
     
-    <label>Kode Aktivasi:</label>
-    <input id="activationCode" type="text" placeholder="Masukkan kode perangkat">
+    <label>Pilih Perangkat:</label>
+    <select id="deviceSelect" onchange="selectDevice()">
+      <option value="">-- Pilih --</option>
+    </select>
     
     <button onclick="startMonitoring()" id="startBtn">📡 Mulai Pantau</button>
-    <button onclick="stopMonitoring()" class="secondary hidden" id="stopBtn">⏹ Berhenti</button>
+    <button onclick="deactivateDevice()" class="danger hidden" id="deactivateBtn">⏹ Nonaktifkan Perangkat Ini</button>
+    <button onclick="logout()" class="secondary">🔓 Keluar</button>
     
-    <div id="statusBox" class="status info">Siap memantau</div>
+    <div id="statusBox" class="status info">Pilih perangkat untuk memulai</div>
     
     <div id="mapContainer" class="hidden">
       <div id="map"></div>
@@ -122,7 +101,7 @@
           <div class="info-value" id="infoLoc">-</div>
         </div>
         <div class="info-item">
-          <div class="info-label">Terakhir Update</div>
+          <div class="info-label">Update Terakhir</div>
           <div class="info-value" id="infoTime">-</div>
         </div>
         <div class="info-item">
@@ -146,35 +125,27 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
+const PARENT_PASSWORD = 'ortu123';
 let sbClient = null;
 let map = null;
 let marker = null;
 let channel = null;
-let currentCode = '';
+let currentDevice = '';
+let allDevices = [];
 
-function saveSetup() {
-  let url = document.getElementById('sbUrl').value.trim();
-  const key = document.getElementById('sbKey').value.trim();
-  url = url.replace('/rest/v1', '').replace('/rest', '');
-  
-  if (!url || !key) { alert('URL dan Key harus diisi!'); return; }
-  if (!url.includes('supabase.co')) { alert('URL tidak valid!'); return; }
-  
-  try {
-    localStorage.setItem('sb_url', url);
-    localStorage.setItem('sb_key', key);
-    sbClient = window.supabase.createClient(url, key);
-    document.getElementById('setupStatus').className = 'status ok';
-    document.getElementById('setupStatus').textContent = '✅ Tersimpan!';
-    setTimeout(() => showScreen('mainScreen'), 800);
-  } catch (e) {
-    document.getElementById('setupStatus').className = 'status err';
-    document.getElementById('setupStatus').textContent = '❌ ' + e.message;
+function checkPassword() {
+  const password = document.getElementById('passwordInput').value;
+  if (password === PARENT_PASSWORD) {
+    showScreen('mainScreen');
+    loadDevices();
+  } else {
+    document.getElementById('passwordStatus').className = 'status err';
+    document.getElementById('passwordStatus').textContent = '❌ Password salah!';
   }
 }
 
 function showScreen(id) {
-  ['setupScreen', 'mainScreen'].forEach(s => {
+  ['passwordScreen', 'mainScreen'].forEach(s => {
     document.getElementById(s).classList.add('hidden');
   });
   document.getElementById(id).classList.remove('hidden');
@@ -183,9 +154,46 @@ function showScreen(id) {
 function initApp() {
   const url = localStorage.getItem('sb_url');
   const key = localStorage.getItem('sb_key');
-  if (!url || !key) { showScreen('setupScreen'); return; }
+  if (!url || !key) {
+    alert('Konfigurasi belum ada. Buka halaman Aktivasi GPS dulu.');
+    window.location.href = 'index.html';
+    return;
+  }
   sbClient = window.supabase.createClient(url, key);
-  showScreen('mainScreen');
+}
+
+async function loadDevices() {
+  try {
+    const { data, error } = await sbClient
+      .from('locations')
+      .select('family_code')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    const uniqueDevices = [...new Set(data.map(d => d.family_code))];
+    allDevices = uniqueDevices;
+    
+    const select = document.getElementById('deviceSelect');
+    select.innerHTML = '<option value="">-- Pilih --</option>';
+    uniqueDevices.forEach(device => {
+      const option = document.createElement('option');
+      option.value = device;
+      option.textContent = device.charAt(0).toUpperCase() + device.slice(1);
+      select.appendChild(option);
+    });
+  } catch (e) {
+    console.error('Gagal load perangkat:', e);
+  }
+}
+
+function selectDevice() {
+  currentDevice = document.getElementById('deviceSelect').value;
+  document.getElementById('deactivateBtn').classList.add('hidden');
+  if (currentDevice) {
+    document.getElementById('statusBox').className = 'status info';
+    document.getElementById('statusBox').textContent = 'Perangkat terpilih. Klik "Mulai Pantau"';
+  }
 }
 
 function initMap() {
@@ -197,15 +205,11 @@ function initMap() {
 }
 
 async function startMonitoring() {
-  const code = document.getElementById('activationCode').value.trim();
-  if (!code) { alert('Masukkan kode aktivasi!'); return; }
-  if (!sbClient) { alert('Konfigurasi belum siap!'); return; }
+  if (!currentDevice) { alert('Pilih perangkat dulu!'); return; }
   
-  currentCode = code;
   initMap();
-  
   document.getElementById('startBtn').classList.add('hidden');
-  document.getElementById('stopBtn').classList.remove('hidden');
+  document.getElementById('deactivateBtn').classList.remove('hidden');
   document.getElementById('mapContainer').classList.remove('hidden');
   
   const statusBox = document.getElementById('statusBox');
@@ -213,23 +217,20 @@ async function startMonitoring() {
   statusBox.textContent = 'Menghubungkan...';
   
   try {
-    // Load lokasi terakhir
     const { data, error } = await sbClient
       .from('locations')
       .select('*')
-      .eq('family_code', code)
+      .eq('family_code', currentDevice)
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
     
     if (error && error.code !== 'PGRST116') throw error;
-    
     if (data) updateDisplay(data);
     
-    // Subscribe realtime
-    channel = sbClient.channel('loc-' + code)
+    channel = sbClient.channel('loc-' + currentDevice)
       .on('postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'locations', filter: 'family_code=eq.' + code },
+        { event: 'INSERT', schema: 'public', table: 'locations', filter: 'family_code=eq.' + currentDevice },
         (payload) => {
           console.log('📡 Update:', payload.new);
           updateDisplay(payload.new);
@@ -258,13 +259,35 @@ function updateDisplay(data) {
   document.getElementById('infoAcc').textContent = '±' + Math.round(data.accuracy) + 'm';
 }
 
+async function deactivateDevice() {
+  if (!currentDevice) return;
+  if (!confirm(`⚠️ Nonaktifkan perangkat "${currentDevice}"?\n\nPerangkat akan berhenti mengirim lokasi.`)) return;
+  
+  try {
+    await sbClient.from('locations').delete().eq('family_code', currentDevice);
+    alert('✅ Perangkat dinonaktifkan!');
+    stopMonitoring();
+    loadDevices();
+  } catch (e) {
+    alert('❌ Gagal: ' + e.message);
+  }
+}
+
 function stopMonitoring() {
   if (channel) { channel.unsubscribe(); channel = null; }
   document.getElementById('startBtn').classList.remove('hidden');
-  document.getElementById('stopBtn').classList.add('hidden');
+  document.getElementById('deactivateBtn').classList.add('hidden');
   document.getElementById('mapContainer').classList.add('hidden');
   document.getElementById('statusBox').className = 'status info';
-  document.getElementById('statusBox').textContent = 'Pemantauan dihentikan';
+  document.getElementById('statusBox').textContent = 'Pilih perangkat untuk memulai';
+}
+
+function logout() {
+  showScreen('passwordScreen');
+  document.getElementById('passwordInput').value = '';
+  document.getElementById('passwordStatus').className = 'status info';
+  document.getElementById('passwordStatus').textContent = 'Default: ortu123';
+  stopMonitoring();
 }
 
 window.addEventListener('load', initApp);
