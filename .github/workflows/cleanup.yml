@@ -1,0 +1,58 @@
+name: Supabase Cleanup
+
+on:
+  schedule:
+    # Jalankan tiap hari jam 2 pagi WIB (19:00 UTC)
+    - cron: '0 19 * * *'
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install Supabase client
+        run: npm install @supabase/supabase-js
+      
+      - name: Run cleanup script
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          node -e "
+          const { createClient } = require('@supabase/supabase-js');
+          const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+          
+          async function cleanup() {
+            const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+            console.log('🧹 Cutoff date:', cutoff);
+            
+            const { error: locError } = await supabase
+              .from('locations')
+              .delete()
+              .lt('created_at', cutoff);
+            
+            if (locError) console.error('❌ Locations error:', locError.message);
+            else console.log('✅ Locations cleaned');
+            
+            const { error: alertError } = await supabase
+              .from('alerts')
+              .delete()
+              .lt('created_at', cutoff);
+            
+            if (alertError) console.error(' Alerts error:', alertError.message);
+            else console.log('✅ Alerts cleaned');
+            
+            console.log('🎉 Cleanup selesai!');
+          }
+          
+          cleanup();
+          "
