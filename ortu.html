@@ -150,7 +150,7 @@ const SUPABASE_URL = 'https://vjqjuwmpsxgyyaksgpdy.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_8xAS-WIffN84TLFrBKZzJA_B3kpPc4V';
 
 // Inisialisasi Supabase client langsung
-let sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 function initApp() {
   // Langsung load devices, tidak perlu cek localStorage
