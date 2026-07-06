@@ -234,6 +234,11 @@ async function startMonitoring() {
   document.getElementById('deactivateBtn').classList.remove('hidden');
   document.getElementById('mapContainer').classList.remove('hidden');
   
+  // FIX PETA ABU-ABU: Beri waktu sedikit, lalu suruh peta sesuaikan ukuran
+  setTimeout(() => {
+    map.invalidateSize();
+  }, 200);
+  
   const statusBox = document.getElementById('statusBox');
   statusBox.className = 'status info';
   statusBox.textContent = 'Menghubungkan...';
