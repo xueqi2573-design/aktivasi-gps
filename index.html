@@ -47,16 +47,16 @@
 
   <!-- MODE SCREEN -->
   <div id="modeScreen" class="card hidden">
-    <h1>👨‍‍👧 Aktivasi GPS</h1>
+    <h1>👨‍👩‍ Aktivasi GPS</h1>
     <p style="margin:15px 0;color:#555;">Pilih peran Anda:</p>
-    <button onclick="setMode('child')">📱 Saya ANAK (HP yang dilacak)</button>
-    <button onclick="setMode('parent')" style="background:#42b72a;">👨‍‍👦 Saya ORANG TUA (melihat lokasi)</button>
+    <button onclick="setMode('child')"> Saya ANAK (HP yang dilacak)</button>
+    <button onclick="setMode('parent')" style="background:#42b72a;">‍👩‍👦 Saya ORANG TUA (melihat lokasi)</button>
     <button onclick="resetSetup()" style="background:#6c757d;">⚙️ Reset Setup</button>
   </div>
 
   <!-- CHILD SCREEN -->
   <div id="childScreen" class="card hidden">
-    <h1>📱 Mode Anak</h1>
+    <h1> Mode Anak</h1>
     <label>Kode Keluarga:</label>
     <input id="childCode" type="text" placeholder="contoh: keluargaku2026">
     
@@ -70,7 +70,7 @@
 
   <!-- PARENT SCREEN -->
   <div id="parentScreen" class="card hidden">
-    <h1>👨‍👩‍ Mode Orang Tua</h1>
+    <h1>👨‍👩‍👦 Mode Orang Tua</h1>
     <label>Kode Keluarga:</label>
     <input id="parentCode" type="text" placeholder="contoh: keluargaku2026">
     
@@ -89,10 +89,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-console.log('🚀 Aplikasi dimulai');
-console.log('Supabase library:', typeof window.supabase);
-
-let supabase = null;
+// GANTI NAMA VARIABEL: supabase -> sbClient (hindari bentrok dengan global Firefox)
+let sbClient = null;
 let watchId = null;
 let sendTimer = null;
 let map = null;
@@ -109,12 +107,12 @@ function saveSetup() {
   console.log('Key:', key ? key.substring(0, 20) + '...' : '(kosong)');
   
   if (!url || !key) {
-    alert('⚠️ URL dan Key harus diisi!');
+    alert('️ URL dan Key harus diisi!');
     return;
   }
   
   if (!url.includes('supabase.co')) {
-    alert('⚠️ URL tidak valid! Format: https://xxx.supabase.co');
+    alert('️ URL tidak valid! Format: https://xxx.supabase.co');
     return;
   }
   
@@ -151,7 +149,8 @@ function showScreen(id) {
 }
 
 function initApp() {
-  console.log('🔵 initApp dipanggil');
+  console.log(' initApp dipanggil');
+  console.log('Supabase library loaded:', typeof window.supabase);
   
   const url = localStorage.getItem('sb_url');
   const key = localStorage.getItem('sb_key');
@@ -166,11 +165,12 @@ function initApp() {
   }
   
   try {
-    supabase = window.supabase.createClient(url, key);
-    console.log('✅ Supabase client dibuat');
+    // PENTING: pakai window.supabase.createClient (library), simpan ke sbClient (variabel kita)
+    sbClient = window.supabase.createClient(url, key);
+    console.log('✅ Supabase client dibuat (sbClient)');
     showScreen('modeScreen');
   } catch (e) {
-    console.error('❌ Gagal buat Supabase client:', e);
+    console.error(' Gagal buat Supabase client:', e);
     alert('Gagal connect ke Supabase: ' + e.message);
     showScreen('setupScreen');
   }
@@ -178,7 +178,7 @@ function initApp() {
 
 // ============ MODE ============
 function setMode(mode) {
-  console.log('🔵 setMode:', mode);
+  console.log(' setMode:', mode);
   
   if (mode === 'child') {
     showScreen('childScreen');
@@ -213,7 +213,7 @@ function startChild() {
   
   if (!navigator.geolocation) {
     status.className = 'status err';
-    status.textContent = ' Browser tidak support GPS';
+    status.textContent = '❌ Browser tidak support GPS';
     return;
   }
   
@@ -225,13 +225,13 @@ function startChild() {
     (err) => {
       console.error('❌ GPS error:', err);
       status.className = 'status err';
-      status.textContent = '❌ GPS: ' + err.message;
+      status.textContent = ' GPS: ' + err.message;
     },
     { enableHighAccuracy: true }
   );
   
   sendTimer = setInterval(() => {
-    console.log('️ Interval trigger');
+    console.log('⏱️ Interval trigger');
   }, interval);
   
   status.className = 'status ok';
@@ -241,9 +241,9 @@ function startChild() {
 
 async function sendLocation(code, coords) {
   try {
-    console.log('📤 Mengirim lokasi ke Supabase...');
+    console.log(' Mengirim lokasi ke Supabase...');
     
-    const { data, error } = await supabase
+    const { data, error } = await sbClient
       .from('locations')
       .insert({
         family_code: code,
@@ -256,7 +256,7 @@ async function sendLocation(code, coords) {
     
     console.log('✅ Lokasi terkirim:', data);
     document.getElementById('childStatus').textContent = 
-      `✅ Terkirim @ ${new Date().toLocaleTimeString('id-ID')}`;
+      '✅ Terkirim @ ' + new Date().toLocaleTimeString('id-ID');
   } catch (e) {
     console.error('❌ Gagal kirim:', e);
     document.getElementById('childStatus').className = 'status err';
@@ -287,7 +287,7 @@ async function startParent() {
   
   try {
     // Ambil lokasi terakhir
-    const { data, error } = await supabase
+    const { data, error } = await sbClient
       .from('locations')
       .select('*')
       .eq('family_code', code)
@@ -304,18 +304,18 @@ async function startParent() {
     }
     
     // Subscribe realtime
-    supabase.channel('locations-' + code)
+    sbClient.channel('locations-' + code)
       .on('postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'locations', filter: `family_code=eq.${code}` },
+        { event: 'INSERT', schema: 'public', table: 'locations', filter: 'family_code=eq.' + code },
         (payload) => {
-          console.log(' Realtime update:', payload.new);
+          console.log('📡 Realtime update:', payload.new);
           updateMap(payload.new);
           document.getElementById('mapContainer').classList.remove('hidden');
         }
       ).subscribe();
     
     status.className = 'status ok';
-    status.textContent = '📡 Live - Mendengarkan...';
+    status.textContent = ' Live - Mendengarkan...';
   } catch (e) {
     console.error('❌ Error:', e);
     status.className = 'status err';
@@ -333,12 +333,12 @@ function updateMap(data) {
   }
   
   document.getElementById('infoLoc').textContent = 
-    `📍 ${data.lat.toFixed(5)}, ${data.lng.toFixed(5)} (${new Date(data.created_at).toLocaleString('id-ID')})`;
+    '📍 ' + data.lat.toFixed(5) + ', ' + data.lng.toFixed(5) + ' (' + new Date(data.created_at).toLocaleString('id-ID') + ')';
 }
 
 // ============ INIT ============
 window.addEventListener('load', () => {
-  console.log(' Page loaded');
+  console.log('🚀 Page loaded');
   initApp();
 });
 </script>
