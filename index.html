@@ -232,7 +232,7 @@ const countdown = setInterval(() => {
     }
   }
 }, 1000);
-
+}
 async function sendLocation(coords) {
   try {
     const { error } = await sbClient.from('locations').insert({
