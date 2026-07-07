@@ -295,6 +295,7 @@ async function startMonitoring() {
       { event: 'INSERT', schema: 'public', table: tableName, filter: 'family_code=eq.' + currentDevice },
       (payload) => {
         console.log('📡 Data Realtime Masuk:', payload.new);
+       console.log('📡 Timestamp:', new Date().toISOString());
         updateDisplay(payload.new);
       }
     ).subscribe();
@@ -305,7 +306,7 @@ async function startMonitoring() {
     statusBox.className = 'status err';
     statusBox.textContent = '❌ ' + e.message;
   }
-}
+ }
 
 function updateDisplay(data) {
   // 1. Membuat link Google Maps berdasarkan koordinat lat & lng
