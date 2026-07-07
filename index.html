@@ -152,8 +152,8 @@ function masukModeStandby() {
   document.getElementById('statusBox').className = 'status ok';
   document.getElementById('statusBox').textContent = '✅ Terdaftar! Menunggu pantauan ortu...';
 
-  // 2. BUAT KONEKSI KE SERVER SUPABASE (BROADCAST)
-  channel = sbClient.channel('koneksi-' + currentName);
+ // 2. BUAT KONEKSI KE SERVER SUPABASE (BROADCAST)
+channel = sbClient.channel('remote-' + currentName);  // ← Samakan dengan ortu
   
   channel.on('broadcast', { event: 'perintah-ortu' }, (msg) => {
       console.log("Terima perintah:", msg.payload.aksi);
@@ -199,9 +199,18 @@ function masukModeStandby() {
 function startGPS() {
   if (watchId) return; 
   
-  console.log("Ortu sedang memantau, menyalakan GPS realtime!");
+  console.log("✅ Ortu sedang memantau, menyalakan GPS realtime!");
+  
+  // Tambah log di sendLocation
+  const originalSendLocation = sendLocation;
+  sendLocation = async function(coords) {
+    console.log("📍 Kirim lokasi:", coords.latitude, coords.longitude);
+    await originalSendLocation(coords);
+  };
+  
   watchId = navigator.geolocation.watchPosition(
     async (pos) => {
+      console.log("📡 Posisi baru:", pos.coords);
       await sendLocation(pos.coords);
     },
     (err) => {
