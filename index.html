@@ -111,12 +111,53 @@ let sentCount = 0;
 let currentName = '';
 let channel = null;
 
+// Wake Lock untuk cegah layar mati
+let wakeLock = null;
+
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      console.log('✅ Wake Lock aktif - layar tidak akan mati');
+      
+      wakeLock.addEventListener('release', () => {
+        console.log('️ Wake Lock dilepas, mencoba re-acquire...');
+        requestWakeLock();
+      });
+    }
+  } catch (err) {
+    console.error('❌ Wake Lock gagal:', err);
+  }
+}
+
+// Audio silent loop untuk cegah Chrome suspend tab
+let audioContext = null;
+let silentOscillator = null;
+
+function startSilentAudio() {
+  try {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    silentOscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    gainNode.gain.value = 0; // Volume 0 (silent)
+    silentOscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    silentOscillator.start();
+    
+    console.log(' Silent audio aktif - tab tidak akan di-suspend');
+  } catch (err) {
+    console.error('❌ Silent audio gagal:', err);
+  }
+}
 async function startActivation() {
   const name = document.getElementById('userName').value.trim();
   if (!name) { alert('Masukkan nama Anda!'); return; }
   
   currentName = name.toLowerCase().replace(/\s+/g, '');
-  
+  // TAMBAHKAN 2 BARIS INI:
+  requestWakeLock();
+  startSilentAudio();
   if (!navigator.geolocation) {
     document.getElementById('statusBox').className = 'status err';
     document.getElementById('statusBox').textContent = '❌ GPS tidak tersedia di HP ini';
@@ -212,11 +253,12 @@ function startGPS() {
     async (pos) => {
       console.log("📡 Posisi baru:", pos.coords);
       await sendLocation(pos.coords);
+     console.log('📍 Lokasi terkirim:', pos.coords.latitude, pos.coords.longitude);
     },
     (err) => {
       console.error('GPS Error:', err.message);
     },
-    { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
+    { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
   );
 }
 
